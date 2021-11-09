@@ -1,10 +1,10 @@
 <template>
   <v-app>
-      <v-toolbar dark color="#1D3557" style="width: 100%;">
+      <v-toolbar dark :color="toolbar_color" style="width: 100%;">
         <v-img :src="require('./images/virusurf_logo.png')" contain max-width="39px" max-height="39px"></v-img>
         <v-toolbar-title class="headline" style="font-size: 32px !important; margin-left: 20px">
-            <span>Viru</span>
-            <span class="font-weight-light">Clust</span>
+            <span>Variant</span>
+            <span class="font-weight-light"> Hunter</span>
         </v-toolbar-title>
 
         <span style="font-size: 20px; white-space: nowrap; margin-left: 50px">enabled by data from
@@ -40,6 +40,12 @@
           <v-btn icon text href="http://gmql.eu/virusviz/" target="_blank"
                  style="background-color: transparent; width: 100px">
               <span>VirusViz</span>
+          </v-btn>
+          <v-btn icon text href="http://gmql.eu/viruclust_gisaid/" target="_blank"
+                 style="background-color: transparent; width: 200px">
+              <span>ViruClust</span>
+              <img style="vertical-align: middle;" :src="require('./assets/enabled_gisaid_white.png')" alt="gisaid-logo"
+                     height="40px"/>
           </v-btn>
           <v-btn icon text href="https://github.com/DEIB-GECO/ViruClust/wiki" target="_blank"
                  style="background-color: transparent; width: 100px">
@@ -106,6 +112,16 @@
           </v-list-item>
           <v-list-item style="background-color: white; border-top: grey solid 1px">
               <v-list-item-content>
+                <v-btn icon text href="http://gmql.eu/viruclust_gisaid/" target="_blank"
+                       style="background-color: transparent; width: 200px">
+                    <span>ViruClust</span>
+                    <img style="vertical-align: middle;" :src="require('./assets/enabled_gisaid_grey.png')" alt="gisaid-logo"
+                     height="50px"/>
+                </v-btn>
+              </v-list-item-content>
+          </v-list-item>
+          <v-list-item style="background-color: white; border-top: grey solid 1px">
+              <v-list-item-content>
                 <v-btn icon text href="https://github.com/DEIB-GECO/ViruClust/wiki" target="_blank"
                        style="background-color: transparent; width: 200px">
                     <span>Wiki</span>
@@ -126,7 +142,7 @@
       </v-toolbar>
 
     <v-main>
-      <ChoosingPage></ChoosingPage>
+      <AnalyzePage></AnalyzePage>
     </v-main>
 
     <v-footer app>
@@ -146,17 +162,28 @@
 </template>
 
 <script>
-import ChoosingPage from "./components/ChoosingPage";
+import AnalyzePage from "@/components/AnalyzePage";
+import {mapActions, mapGetters, mapMutations, mapState} from "vuex";
 
 export default {
   name: 'App',
 
   components: {
-    ChoosingPage,
+    AnalyzePage,
   },
 
-  data: () => ({
-    //
-  }),
+  data() {
+    return {
+
+    }
+  },
+  computed: {
+    ...mapState(['toolbar_color']),
+    ...mapGetters({}),
+  },
+  methods: {
+    ...mapMutations([]),
+    ...mapActions([]),
+  },
 };
 </script>
