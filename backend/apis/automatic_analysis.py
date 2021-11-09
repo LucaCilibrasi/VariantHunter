@@ -416,8 +416,14 @@ def get_final_object_aggregated_place(single_obj):
         dict_count_aggregated_place[name_granularity_granularity]['total_seq_pop_this_week']
     final_obj['total_seq_pop_prev_week'] = denominator_prev_week_granularity
     final_obj['total_seq_pop_this_week'] = denominator_this_week_granularity
-    final_obj['perc_prev_week'] = (final_obj['count_prev_week'] / final_obj['total_seq_pop_prev_week']) * 100
-    final_obj['perc_this_week'] = (final_obj['count_this_week'] / final_obj['total_seq_pop_this_week']) * 100
+    if final_obj['total_seq_pop_prev_week'] != 0:
+        final_obj['perc_prev_week'] = (final_obj['count_prev_week'] / final_obj['total_seq_pop_prev_week']) * 100
+    else:
+        final_obj['perc_prev_week'] = 0
+    if final_obj['total_seq_pop_this_week'] != 0:
+        final_obj['perc_this_week'] = (final_obj['count_this_week'] / final_obj['total_seq_pop_this_week']) * 100
+    else:
+        final_obj['perc_this_week'] = 0
     final_obj['diff_perc'] = abs(final_obj['perc_prev_week'] - final_obj['perc_this_week'])
     return final_obj
 
@@ -487,8 +493,14 @@ def get_all_mutation_for_lineage_for_each_geo_previous_week(location_granularity
                     query_prev_week['collection_date'] = {'$lt': last_week_date, '$gte': previous_week_date}
                     results_this_week = collection_db.count_documents(query_this_week)
                     results_prev_week = collection_db.count_documents(query_prev_week)
-                    perc_prev_week = (results_prev_week/denominator_prev_week)*100
-                    perc_this_week = (results_this_week/denominator_this_week)*100
+                    if denominator_prev_week != 0:
+                        perc_prev_week = (results_prev_week/denominator_prev_week)*100
+                    else:
+                        perc_prev_week = 0
+                    if denominator_this_week != 0:
+                        perc_this_week = (results_this_week/denominator_this_week)*100
+                    else:
+                        perc_this_week = 0
                     diff_perc = abs(perc_this_week-perc_prev_week)
 
                     full_object = {f'{location_granularity[0]}': location_0,
