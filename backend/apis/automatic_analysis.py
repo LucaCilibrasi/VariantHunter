@@ -297,7 +297,7 @@ def get_all_lineage_for_each_geo(location_granularity):
                         and loc_geo[f'{location_granularity[2]}'] == location_2:
                     total_sequences = loc_geo['count']
             # print("qui", single_item['_id']['lineage'], location, single_item['count'], total_sequences)
-            if single_item['count'] / total_sequences > 0.05:
+            if single_item['count'] / total_sequences > 0.01:
                 single_item_remodel = {f'{location_granularity[0]}': location_0,
                                        f'{location_granularity[1]}': location_1,
                                        f'{location_granularity[2]}': location_2,
@@ -454,75 +454,75 @@ def get_all_mutation_for_lineage_for_each_geo_previous_week(location_granularity
             denominator_prev_week = lineage_growth_result['count_prev_week']
             denominator_this_week = lineage_growth_result['count_this_week']
 
-            if lineage == 'B.1.617.2':
-                all_mutations_dict = get_all_mutation_not_characteristics(lineage,
-                                                                          location_0, location_1, location_2,
-                                                                          today_date, location_granularity)
-                mut_dict = all_mutations_dict[lineage]
-                for mut in mut_dict[1]:
-                    if '*' not in mut and '_-' not in mut and 'Spike' in mut:
-                        query = {
-                                    'c_coll_date_prec': {
-                                        '$eq': 2
-                                    },
-                                    f'location.{location_granularity[0]}': {
-                                        '$eq': location_0
-                                    },
-                                    f'location.{location_granularity[1]}': {
-                                        '$eq': location_1
-                                    },
-                                    f'location.{location_granularity[2]}': {
-                                        '$eq': location_2
-                                    },
-                                    'covv_lineage': {
-                                        '$eq': lineage
-                                    },
-                                    'covsurver_prot_mutations': {
-                                        '$regex': mut, '$options': 'i'
-                                    }
+            # if lineage == 'B.1.617.2':
+            all_mutations_dict = get_all_mutation_not_characteristics(lineage,
+                                                                      location_0, location_1, location_2,
+                                                                      today_date, location_granularity)
+            mut_dict = all_mutations_dict[lineage]
+            for mut in mut_dict[1]:
+                if '*' not in mut and '_-' not in mut:      # and 'Spike' in mut:
+                    query = {
+                                'c_coll_date_prec': {
+                                    '$eq': 2
+                                },
+                                f'location.{location_granularity[0]}': {
+                                    '$eq': location_0
+                                },
+                                f'location.{location_granularity[1]}': {
+                                    '$eq': location_1
+                                },
+                                f'location.{location_granularity[2]}': {
+                                    '$eq': location_2
+                                },
+                                'covv_lineage': {
+                                    '$eq': lineage
+                                },
+                                'covsurver_prot_mutations': {
+                                    '$regex': mut, '$options': 'i'
                                 }
-                        query_this_week = query.copy()
-                        query_prev_week = query.copy()
-                        query_this_week['collection_date'] = {'$lt': today_date, '$gte': last_week_date}
-                        query_prev_week['collection_date'] = {'$lt': last_week_date, '$gte': previous_week_date}
-                        results_this_week = collection_db.count_documents(query_this_week)
-                        results_prev_week = collection_db.count_documents(query_prev_week)
-                        perc_prev_week = (results_prev_week/denominator_prev_week)*100
-                        perc_this_week = (results_this_week/denominator_this_week)*100
-                        diff_perc = abs(perc_this_week-perc_prev_week)
+                            }
+                    query_this_week = query.copy()
+                    query_prev_week = query.copy()
+                    query_this_week['collection_date'] = {'$lt': today_date, '$gte': last_week_date}
+                    query_prev_week['collection_date'] = {'$lt': last_week_date, '$gte': previous_week_date}
+                    results_this_week = collection_db.count_documents(query_this_week)
+                    results_prev_week = collection_db.count_documents(query_prev_week)
+                    perc_prev_week = (results_prev_week/denominator_prev_week)*100
+                    perc_this_week = (results_this_week/denominator_this_week)*100
+                    diff_perc = abs(perc_this_week-perc_prev_week)
 
-                        full_object = {f'{location_granularity[0]}': location_0,
-                                       f'{location_granularity[1]}': location_1,
-                                       f'{location_granularity[2]}': location_2,
-                                       'lineage': lineage,
-                                       'mut': mut,
-                                       'total_seq_world_prev_week': denominator_world_prev_week,
-                                       'total_seq_world_this_week': denominator_world_this_week,
-                                       'total_seq_pop_prev_week': denominator_prev_week,
-                                       'total_seq_pop_this_week': denominator_this_week,
-                                       'count_prev_week': results_prev_week,
-                                       'count_this_week': results_this_week,
-                                       'perc_prev_week': perc_prev_week,
-                                       'perc_this_week': perc_this_week,
-                                       'diff_perc': diff_perc,
-                                       'date': today_date.strftime("%Y-%m-%d"),
-                                       'granularity': location_granularity[2]
-                                       }
+                    full_object = {f'{location_granularity[0]}': location_0,
+                                   f'{location_granularity[1]}': location_1,
+                                   f'{location_granularity[2]}': location_2,
+                                   'lineage': lineage,
+                                   'mut': mut,
+                                   'total_seq_world_prev_week': denominator_world_prev_week,
+                                   'total_seq_world_this_week': denominator_world_this_week,
+                                   'total_seq_pop_prev_week': denominator_prev_week,
+                                   'total_seq_pop_this_week': denominator_this_week,
+                                   'count_prev_week': results_prev_week,
+                                   'count_this_week': results_this_week,
+                                   'perc_prev_week': perc_prev_week,
+                                   'perc_this_week': perc_this_week,
+                                   'diff_perc': diff_perc,
+                                   'date': today_date.strftime("%Y-%m-%d"),
+                                   'granularity': location_granularity[2]
+                                   }
 
-                        # all_mutation_for_lineage_for_geo_previous_week.append(full_object)
-                        all_all_mut_for_lineage_for_geo.append(full_object)
+                    # all_mutation_for_lineage_for_geo_previous_week.append(full_object)
+                    all_all_mut_for_lineage_for_geo.append(full_object)
 
-                        populate_aggregate_place_dict(full_object, location_granularity, today_date, granularity=1)
-                        populate_aggregate_place_dict(full_object, location_granularity, today_date, granularity=0)
-                        populate_aggregate_place_dict(full_object, location_granularity, today_date, granularity=-1)
+                    populate_aggregate_place_dict(full_object, location_granularity, today_date, granularity=1)
+                    populate_aggregate_place_dict(full_object, location_granularity, today_date, granularity=0)
+                    populate_aggregate_place_dict(full_object, location_granularity, today_date, granularity=-1)
 
-                # name_csv = lineage + '.csv'
-                # directory = f'CSV_examples/{location_0}/{location_1}/{location_2}'
-                # if not os.path.exists(directory):
-                #     os.makedirs(directory)
-                # table = pd.DataFrame(all_mutation_for_lineage_for_geo_previous_week)
-                # table.to_csv(rf'{directory}/{name_csv}',
-                #              index=False, header=True)
+            # name_csv = lineage + '.csv'
+            # directory = f'CSV_examples/{location_0}/{location_1}/{location_2}'
+            # if not os.path.exists(directory):
+            #     os.makedirs(directory)
+            # table = pd.DataFrame(all_mutation_for_lineage_for_geo_previous_week)
+            # table.to_csv(rf'{directory}/{name_csv}',
+            #              index=False, header=True)
 
     for aggregated_loc in dict_aggregated_place:
         single_obj = dict_aggregated_place[aggregated_loc].copy()
