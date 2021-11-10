@@ -35,7 +35,7 @@
       </v-tab>
 
       <v-tab-item class="fixed_menu">
-        <div>CIAO 1</div>
+        <HomePage></HomePage>
       </v-tab-item>
 
       <v-tab-item class="fixed_menu">
@@ -61,10 +61,11 @@
 
 <script>
 import {mapActions, mapGetters, mapMutations, mapState} from "vuex";
+import HomePage from "@/components/HomePage";
 
 export default {
   name: "AnalyzePage",
-  components: {},
+  components: {HomePage},
   data() {
     return {
       selectedTab: 0,

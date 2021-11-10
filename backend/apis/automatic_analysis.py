@@ -5,17 +5,19 @@ import timeit
 import pandas as pd
 
 from datetime import datetime, timedelta
-from flask_restplus import Namespace
+from flask_restplus import Namespace, Resource
 from pymongo import MongoClient
 
-api = Namespace('analyze', description='analyze')
+api = Namespace('automatic_analysis', description='automatic_analysis')
 
 uri = "mongodb://localhost:27017/gcm_gisaid"
 client = MongoClient(uri)
 db = client.gcm_gisaid
 
-collection_db = db.seq_2021_08_26_2
+# collection_db = db.seq_2021_08_26_2
+collection_db = db.seq_test_1
 collection_update_date = db.db_meta
+collection_result_variant_db = db.prova_results_variant
 
 
 world_growth_obj = {}
@@ -197,9 +199,8 @@ def get_all_mutation_not_characteristics(lineage, location_0, location_1, locati
 all_geo_last_week_dict = {}
 
 
-def get_all_geo_last_week(location_granularity):
+def get_all_geo_last_week(location_granularity, today_date):
     print("inizio request geo last week")
-    today_date = datetime.strptime("2021-08-08", '%Y-%m-%d')
 
     world_growth(today_date, location_granularity)
 
@@ -240,15 +241,14 @@ def get_all_geo_last_week(location_granularity):
         list_geo_dict.append(single_item_remodel)
     all_geo_last_week_dict['all_geo_last_week'] = list_geo_dict
     print("fine request geo last week")
-    get_all_lineage_for_each_geo(location_granularity)
+    get_all_lineage_for_each_geo(location_granularity, today_date)
 
 
 all_lineage_for_geo_last_week = {}
 
 
-def get_all_lineage_for_each_geo(location_granularity):
+def get_all_lineage_for_each_geo(location_granularity, today_date):
     print("inizio request all_lineages")
-    today_date = datetime.strptime("2021-08-08", '%Y-%m-%d')
     last_week_date = today_date.replace(day=today_date.day) - timedelta(days=7)
 
     geo_dict = all_geo_last_week_dict['all_geo_last_week']
@@ -256,6 +256,8 @@ def get_all_lineage_for_each_geo(location_granularity):
         location_0 = geo[f'{location_granularity[0]}']
         location_1 = geo[f'{location_granularity[1]}']
         location_2 = geo[f'{location_granularity[2]}']
+        # if(location_0 == 'Europe' and location_1 == 'Italy' and (location_2 == 'Abruzzo' or location_2 == 'Lombardia')
+        #         or (location_0 == 'North America' and location_1 == 'Canada' and location_2 == 'Alberta')):
         query = [
             {
                 "$match": {
@@ -307,7 +309,7 @@ def get_all_lineage_for_each_geo(location_granularity):
         name = str(location_0) + '_' + str(location_1) + '_' + str(location_2)
         all_lineage_for_geo_last_week[name] = list_geo_lineage_dict
     print("fine request all_lineages")
-    get_all_mutation_for_lineage_for_each_geo_previous_week(location_granularity)
+    get_all_mutation_for_lineage_for_each_geo_previous_week(location_granularity, today_date)
 
 
 dict_count_aggregated_place = {}
@@ -428,9 +430,8 @@ def get_final_object_aggregated_place(single_obj):
     return final_obj
 
 
-def get_all_mutation_for_lineage_for_each_geo_previous_week(location_granularity):
+def get_all_mutation_for_lineage_for_each_geo_previous_week(location_granularity, today_date):
     print("inizio request all_mutation all_lineages previous week")
-    today_date = datetime.strptime("2021-08-08", '%Y-%m-%d')
     last_week_date = today_date.replace(day=today_date.day) - timedelta(days=7)
     previous_week_date = last_week_date.replace(day=last_week_date.day) - timedelta(days=7)
 
@@ -443,10 +444,12 @@ def get_all_mutation_for_lineage_for_each_geo_previous_week(location_granularity
     total_num_of_geo = len(geo_dict)
     for geo in geo_dict:
         i = i + 1
-        print("GEO: ", i, " / ", total_num_of_geo)
+        print("GEO: ", i, " / ", total_num_of_geo, '_time_: ', start)
         location_0 = geo[f'{location_granularity[0]}']
         location_1 = geo[f'{location_granularity[1]}']
         location_2 = geo[f'{location_granularity[2]}']
+        # if(location_0 == 'Europe' and location_1 == 'Italy' and (location_2 == 'Abruzzo' or location_2 == 'Lombardia')
+        #          or (location_0 == 'North America' and location_1 == 'Canada' and location_2 == 'Alberta')):
         name = str(location_0) + '_' + str(location_1) + '_' + str(location_2)
         for lineage_obj in all_lineage_for_geo_last_week[name]:
             lineage = lineage_obj['lineage']
@@ -542,12 +545,128 @@ def get_all_mutation_for_lineage_for_each_geo_previous_week(location_granularity
         all_all_mut_for_lineage_for_geo.append(final_obj)
 
     table2 = pd.DataFrame(all_all_mut_for_lineage_for_geo)
-    table2.to_json('database.json', orient='records', lines=True)
+    file_name = 'database_variants_' + today_date.strftime("%Y-%m-%d") + '.json'
+    table2.to_json(f'{file_name}', orient='records', lines=True)
     end = timeit.default_timer()
     print("TIMER ", end - start)
     print("fine request all_mutation all_lineages")
 
 
 all_geo_granularity = ['geo_group', 'country', 'region']
-start = timeit.default_timer()
-get_all_geo_last_week(location_granularity=all_geo_granularity)
+
+array_date = ['2021-10-24', '2021-10-31']
+for single_date in array_date:
+    start = timeit.default_timer()
+    date = datetime.strptime(single_date, '%Y-%m-%d')
+    get_all_geo_last_week(location_granularity=all_geo_granularity, today_date=date)
+
+#######################################################
+
+
+@api.route('/getAllGeo')
+class FieldList(Resource):
+    @api.doc('get_all_geo')
+    def get(self):
+        # today_date = datetime.strptime("2021-08-08", '%Y-%m-%d')
+        # {
+        #     "$match": {
+        #         'analysis_date': {
+        #             '$eq': today_date
+        #         },
+        #     },
+        # },
+
+        query = [
+            {"$group": {"_id": {'geo_group': '$geo_group',
+                                'country': "$country",
+                                'region': "$region",
+                                },
+                        }
+             },
+            ]
+
+        results = collection_result_variant_db.aggregate(query, allowDiskUse=True)
+
+        array_continent = []
+        array_country = []
+        array_region = []
+        for single_item in results:
+            if single_item['_id']['geo_group'] not in array_continent:
+                array_continent.append(single_item['_id']['geo_group'])
+            if single_item['_id']['country'] not in array_country:
+                array_country.append(single_item['_id']['country'])
+            if single_item['_id']['region'] not in array_region:
+                array_region.append(single_item['_id']['region'])
+        results = {'continent': array_continent, 'country': array_country, 'region': array_region}
+
+        return results
+
+
+@api.route('/getStatistics')
+class FieldList(Resource):
+    @api.doc('get_statistics')
+    def post(self):
+        payload = api.payload
+        granularity = payload['granularity']
+        location = payload['value']
+        payload_date = payload['date']
+
+        today_date = datetime.strptime(f"{payload_date}", '%Y-%m-%d')
+        where_part = {'analysis_date': {'$eq': today_date}}
+
+        real_granularity_1 = 'world'
+        real_granularity_2 = 'geo_group'
+        if granularity == 'region':
+            real_granularity_1 = granularity
+            array_conditions = []
+            specific_or_1 = {'granularity': {'$eq': real_granularity_1}}
+            array_conditions.append(specific_or_1)
+            where_part['$or'] = array_conditions
+            # where_part['granularity'] = {'$eq': granularity}
+            where_part[granularity] = {'$eq': location}
+        if granularity == 'country':
+            real_granularity_1 = granularity
+            real_granularity_2 = 'region'
+            array_conditions = []
+            specific_or_1 = {'granularity': {'$eq': real_granularity_1}}
+            array_conditions.append(specific_or_1)
+            specific_or_2 = {'granularity': {'$eq': real_granularity_2}}
+            array_conditions.append(specific_or_2)
+            where_part['$or'] = array_conditions
+            # where_part['granularity'] = {'$eq': granularity}
+            where_part[granularity] = {'$eq': location}
+        elif granularity == 'continent':
+            real_granularity_1 = 'geo_group'
+            real_granularity_2 = 'country'
+            array_conditions = []
+            specific_or_1 = {'granularity': {'$eq': real_granularity_1}}
+            array_conditions.append(specific_or_1)
+            specific_or_2 = {'granularity': {'$eq': real_granularity_2}}
+            array_conditions.append(specific_or_2)
+            where_part['$or'] = array_conditions
+            # where_part['granularity'] = {'$eq': real_granularity_1}
+            where_part['geo_group'] = {'$eq': location}
+        else:
+            array_conditions = []
+            specific_or_1 = {'granularity': {'$eq': real_granularity_1}}
+            array_conditions.append(specific_or_1)
+            specific_or_2 = {'granularity': {'$eq': real_granularity_2}}
+            array_conditions.append(specific_or_2)
+            where_part['$or'] = array_conditions
+            # where_part['granularity'] = {'$eq': real_granularity}
+
+        match_part = {'$match': where_part}
+        query = [match_part]
+        results = collection_result_variant_db.aggregate(query, allowDiskUse=True)
+
+        array_results = []
+        for res in list(results):
+            single_obj = {'location': 'World'}
+            for key in res:
+                if key == 'analysis_date':
+                    single_obj[key] = str(res[key]).split("T")[0]
+                else:
+                    single_obj[key] = res[key]
+            array_results.append(single_obj)
+
+        return array_results

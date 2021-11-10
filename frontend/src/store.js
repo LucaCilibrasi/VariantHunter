@@ -6,6 +6,7 @@ Vue.use(Vuex);
 const state = {
     toolbar_color: '#780116',
     menu_color: '#C32F27',
+    background_card_color: '#F8C462',
 };
 
 const getters = {
