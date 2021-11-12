@@ -16,7 +16,7 @@ client = MongoClient(uri)
 db = client.gcm_gisaid
 
 # collection_db = db.seq_2021_08_26_2
-collection_db = db.seq_test_1
+collection_db = db.seq_test_2
 collection_update_date = db.db_meta
 collection_result_variant_db = db.prova_results_variant
 
@@ -663,7 +663,7 @@ array_date = ['2021-10-24']
 for single_date in array_date:
     start = timeit.default_timer()
     date = datetime.strptime(single_date, '%Y-%m-%d')
-    get_all_geo_last_week(location_granularity=all_geo_granularity, today_date=date)
+#    get_all_geo_last_week(location_granularity=all_geo_granularity, today_date=date)
 
 #######################################################
 
