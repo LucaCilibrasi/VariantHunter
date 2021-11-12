@@ -33,11 +33,6 @@
                         <span>{{getFieldText(data.item)}}</span>
                     </template>
                   </v-autocomplete>
-                  <v-checkbox v-model="checkSubPlaces"
-                    hide-details
-                    input-value="true"
-                    :disabled="selectedGeo === 'region'">
-                    </v-checkbox>
                 </v-flex>
                  <v-flex class="no-horizontal-padding xs12 d-flex" style="justify-content: center;">
                  <v-btn
@@ -50,9 +45,39 @@
                   </v-btn>
                </v-flex>
                  <v-flex class="no-horizontal-padding xs12 d-flex" style="justify-content: center;" v-if="showTables">
+                    <v-layout row wrap justify-center style="padding: 30px;">
+                      <v-flex class="no-horizontal-padding xs12 md4 lg2 d-flex" style="justify-content: center;">
+                        <v-autocomplete
+                          v-model="selectedLineage"
+                          :items="possibleLineage"
+                          label="Lineage"
+                          solo
+                          hide-details
+                          clearable
+                        ></v-autocomplete>
+                      </v-flex>
+                      <v-flex class="no-horizontal-padding xs12 md4 lg2 d-flex" style="justify-content: center;">
+                        <v-autocomplete
+                          v-model="selectedProtein"
+                          :items="possibleProtein"
+                          label="Protein"
+                          solo
+                          hide-details
+                          clearable
+                        ></v-autocomplete>
+                      </v-flex>
+                      <v-flex class="no-horizontal-padding xs12 md4 lg2 d-flex" style="justify-content: center;">
+                        <v-checkbox v-model="checkSubPlaces"
+                        hide-details
+                        input-value="true"
+                        label="show sub-places"
+                        :disabled="selectedGeo === 'region'">
+                        </v-checkbox>
+                      </v-flex>
+                      <v-flex class="no-horizontal-padding xs12 d-flex" style="justify-content: center;">
                             <v-data-table
                                   :headers="headerTable"
-                                  :items="rowsTable"
+                                  :items="rowsTableFiltered"
                                   class="data-table table_prov_reg"
                                   style="width: 98%; border: grey solid 1px"
                                   multi-sort
@@ -69,11 +94,11 @@
                                   </tr>
                                 </template>
                             </v-data-table>
-                        </v-flex>
-                  <v-flex class="no-horizontal-padding xs12 d-flex" style="justify-content: center;" v-if="showTables && checkSubPlaces">
+                      </v-flex>
+                      <v-flex class="no-horizontal-padding xs12 d-flex" style="justify-content: center;" v-if="showTables && checkSubPlaces">
                             <v-data-table
                                   :headers="headerTableSubPlaces"
-                                  :items="rowsTableSubPlaces"
+                                  :items="rowsTableSubPlacesFiltered"
                                   class="data-table table_prov_reg"
                                   style="width: 98%; border: grey solid 1px"
                                   multi-sort
@@ -90,7 +115,9 @@
                                   </tr>
                                 </template>
                             </v-data-table>
-                        </v-flex>
+                      </v-flex>
+                    </v-layout>
+                 </v-flex>
                </v-layout>
              </v-card-text>
           </v-card>
@@ -127,12 +154,18 @@ export default {
       headerTableSubPlaces: [],
       rowsTable: [],
       rowsTableSubPlaces: [],
+      rowsTableFiltered: [],
+      rowsTableSubPlacesFiltered: [],
       sortByTable: [],
       sortDescTable: [],
       sortByTableSubPlaces: [],
       sortDescTableSubPlaces: [],
       showTables: false,
       checkSubPlaces: true,
+      selectedLineage: null,
+      possibleLineage: [],
+      selectedProtein: null,
+      possibleProtein: [],
     }
   },
   computed: {
@@ -158,8 +191,14 @@ export default {
       this.headerTableSubPlaces = [];
       this.rowsTable = [];
       this.rowsTableSubPlaces = [];
+      this.rowsTableFiltered = [];
+      this.rowsTableSubPlacesFiltered = [];
+      this.selectedLineage = null;
+      this.selectedProtein = null;
+      this.possibleLineage = [];
+      this.possibleProtein = [];
       let url = `/automatic_analysis/getStatistics`;
-      let to_send = {'granularity': this.selectedGeo, 'value': this.selectedSpecificGeo, 'date': '2021-08-08'};
+      let to_send = {'granularity': this.selectedGeo, 'value': this.selectedSpecificGeo, 'date': '2021-10-24'};   // 2021-08-08
 
       axios.post(url, to_send)
         .then((res) => {
@@ -245,14 +284,48 @@ export default {
                 }
               }
               else{
-                console.log("qui", single_header)
                 this.headerTable.push(single_header);
                 this.headerTableSubPlaces.push(single_header_sub_places);
               }
             }
           });
+
+          this.rowsTableFiltered = JSON.parse(JSON.stringify(this.rowsTable));
+          this.rowsTableSubPlacesFiltered = JSON.parse(JSON.stringify(this.rowsTableSubPlaces));
+
+          this.rowsTable.forEach(elem => {
+            let lineage = elem['lineage'];
+            let protein = elem['muts'][0]['pro'];
+
+            if (!this.possibleLineage.includes(lineage)){
+              this.possibleLineage.push(lineage);
+            }
+            if (!this.possibleProtein.includes(protein)){
+              this.possibleProtein.push(protein);
+            }
+            this.possibleLineage.sort();
+            this.possibleProtein.sort();
+          });
+
           this.overlay = false;
         });
+    },
+    filterRows(){
+      let that = this;
+      this.rowsTableFiltered = JSON.parse(JSON.stringify(this.rowsTable)).filter(function (el) {
+        return (
+            (that.selectedLineage === null || el['lineage'] ===  that.selectedLineage)
+            &&
+            (that.selectedProtein === null || el['muts'][0]['pro'] ===  that.selectedProtein)
+        )
+      });
+      this.rowsTableSubPlacesFiltered = JSON.parse(JSON.stringify(this.rowsTableSubPlaces)).filter(function (el) {
+        return (
+            (that.selectedLineage === null || el['lineage'] ===  that.selectedLineage)
+            &&
+            (that.selectedProtein === null || el['muts'][0]['pro'] ===  that.selectedProtein)
+        )
+      });
     },
   },
   mounted() {
@@ -291,7 +364,13 @@ export default {
     },
     selectedSpecificGeo(){
       this.showTables = false;
-    }
+    },
+    selectedLineage(){
+      this.filterRows();
+    },
+    selectedProtein(){
+      this.filterRows();
+    },
   },
 }
 </script>

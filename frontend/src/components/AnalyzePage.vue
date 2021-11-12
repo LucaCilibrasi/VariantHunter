@@ -19,19 +19,7 @@
       </v-tab>
 
       <v-tab id="tab1" style="border-right: black solid 1px; width: 20%">
-         PREVALENCE OF LINEAGES
-      </v-tab>
-
-      <v-tab id="tab2" style="border-right: black solid 1px; width: 20%">
-         EVOLUTION IN TIME
-      </v-tab>
-
-      <v-tab id="tab3"  style="border-right: black solid 1px; width: 20%">
-         EVOLUTION IN SPACE
-      </v-tab>
-
-      <v-tab id="tab4"  style="border-right: black solid 1px; width: 20%">
-         CUSTOM ANALYSIS
+         ANOTHER...
       </v-tab>
 
       <v-tab-item class="fixed_menu">
@@ -39,19 +27,7 @@
       </v-tab-item>
 
       <v-tab-item class="fixed_menu">
-        <div>CIAO 2</div>
-      </v-tab-item>
-
-      <v-tab-item class="fixed_menu">
-        <div>CIAO 3</div>
-      </v-tab-item>
-
-      <v-tab-item class="fixed_menu">
-         <div>CIAO 4</div>
-      </v-tab-item>
-
-      <v-tab-item class="fixed_menu">
-        <div>CIAO 5</div>
+        <div>HELLO WORLD</div>
       </v-tab-item>
 
     </v-tabs>
