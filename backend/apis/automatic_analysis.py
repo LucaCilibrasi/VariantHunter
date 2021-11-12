@@ -663,7 +663,7 @@ array_date = ['2021-10-24']
 for single_date in array_date:
     start = timeit.default_timer()
     date = datetime.strptime(single_date, '%Y-%m-%d')
-#    get_all_geo_last_week(location_granularity=all_geo_granularity, today_date=date)
+    get_all_geo_last_week(location_granularity=all_geo_granularity, today_date=date)
 
 #######################################################
 
