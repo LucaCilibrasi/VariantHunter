@@ -659,7 +659,7 @@ all_geo_granularity = ['geo_group', 'country', 'region']
 
 # prova_query()
 # array_date = ['2021-08-08', ..., '2021-10-31']
-array_date = ['2021-10-24']
+array_date = ['2021-10-18', '2021-10-24', '2021-10-31']
 for single_date in array_date:
     start = timeit.default_timer()
     date = datetime.strptime(single_date, '%Y-%m-%d')
