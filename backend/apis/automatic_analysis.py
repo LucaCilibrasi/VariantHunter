@@ -16,7 +16,7 @@ client = MongoClient(uri)
 db = client.gcm_gisaid
 
 # collection_db = db.seq_2021_08_26_2
-collection_db = db.seq_test_2
+collection_db = db.seq_test_0
 collection_update_date = db.db_meta
 collection_result_variant_db = db.prova_results_variant
 
