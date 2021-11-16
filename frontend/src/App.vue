@@ -142,7 +142,7 @@
       </v-toolbar>
 
     <v-main>
-      <AnalyzePage></AnalyzePage>
+      <MenuPage></MenuPage>
     </v-main>
 
     <v-footer app>
@@ -162,14 +162,14 @@
 </template>
 
 <script>
-import AnalyzePage from "@/components/AnalyzePage";
 import {mapActions, mapGetters, mapMutations, mapState} from "vuex";
+import MenuPage from "@/components/MenuPage";
 
 export default {
   name: 'App',
 
   components: {
-    AnalyzePage,
+    MenuPage,
   },
 
   data() {

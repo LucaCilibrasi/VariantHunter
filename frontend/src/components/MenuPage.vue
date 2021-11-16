@@ -35,12 +35,13 @@
   </v-container>
 </template>
 
+
 <script>
 import {mapActions, mapGetters, mapMutations, mapState} from "vuex";
 import HomePage from "@/components/HomePage";
 
 export default {
-  name: "AnalyzePage",
+  name: "MenuPage",
   components: {HomePage},
   data() {
     return {
