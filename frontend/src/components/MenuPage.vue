@@ -19,7 +19,7 @@
       </v-tab>
 
       <v-tab id="tab1" style="border-right: black solid 1px; width: 20%">
-         ANOTHER...
+         ...
       </v-tab>
 
       <v-tab-item class="fixed_menu">
@@ -27,7 +27,7 @@
       </v-tab-item>
 
       <v-tab-item class="fixed_menu">
-        <div>HELLO WORLD</div>
+        <MostImportantResult></MostImportantResult>
       </v-tab-item>
 
     </v-tabs>
@@ -39,10 +39,11 @@
 <script>
 import {mapActions, mapGetters, mapMutations, mapState} from "vuex";
 import HomePage from "@/components/HomePage";
+import MostImportantResult from "@/components/MostImportantResult";
 
 export default {
   name: "MenuPage",
-  components: {HomePage},
+  components: {MostImportantResult, HomePage},
   data() {
     return {
       selectedTab: 0,

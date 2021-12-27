@@ -14,7 +14,7 @@
                        <v-flex class="no-horizontal-padding xs12 d-flex" style="justify-content: center; margin-top: 10px">
                        <h2 style="color: white">ADD SPECIFIC ANALYSIS:</h2>
                       </v-flex>
-                      <v-flex class="no-horizontal-padding xs12 md6 d-flex" style="justify-content: center;">
+                      <v-flex class="no-horizontal-padding xs12 md4 d-flex" style="justify-content: center;">
                         <v-select
                           v-model="selectedGeo"
                           :items="possibleGeo"
@@ -23,7 +23,7 @@
                           hide-details
                         ></v-select>
                       </v-flex>
-                      <v-flex class="no-horizontal-padding xs12 md6 d-flex" style="justify-content: center;">
+                      <v-flex class="no-horizontal-padding xs12 md4 d-flex" style="justify-content: center;">
                         <v-autocomplete
                           v-model="selectedSpecificGeo"
                           :items="possibleSpecificGeo"
@@ -35,6 +35,17 @@
                           <template slot="item" slot-scope="data">
                               <span>{{getFieldText(data.item)}}</span>
                           </template>
+                        </v-autocomplete>
+                      </v-flex>
+                       <v-flex class="no-horizontal-padding xs12 md4 d-flex" style="justify-content: center;">
+                        <v-autocomplete
+                          v-model="selectedLineage"
+                          :items="possibleLineage"
+                          label="Lineage"
+                          solo
+                          clearable
+                          hide-details
+                        >
                         </v-autocomplete>
                       </v-flex>
                        <v-flex class="no-horizontal-padding xs12 d-flex" style="justify-content: center;">
@@ -65,7 +76,8 @@
                         <v-expansion-panel-content :color="menu_color">
                           <TablesComponent
                             :rowsTable="rowsTable[index]"
-                            :rowsTableSubPlaces="rowsTableSubPlaces[index]">
+                            :rowsTableSubPlaces="rowsTableSubPlaces[index]"
+                            :mostImportant = false>
                           </TablesComponent>
                         </v-expansion-panel-content>
                       </v-expansion-panel>
@@ -105,6 +117,9 @@ export default {
       selectedSpecificGeo: null,
       possibleSpecificGeo: [],
 
+      selectedLineage: null,
+      possibleLineage: [],
+
       expansionPanels: [],
 
       rowsTable: [],
@@ -135,7 +150,7 @@ export default {
       this.overlay = true;
       let countNumAnalysis = this.rowsTable.length;
       let url = `/automatic_analysis/getStatistics`;
-      let to_send = {'granularity': this.selectedGeo, 'value': this.selectedSpecificGeo, 'date': '2021-10-24'};   // 2021-08-08
+      let to_send = {'granularity': this.selectedGeo, 'value': this.selectedSpecificGeo, 'lineage': this.selectedLineage};   // 2021-08-08
 
       axios.post(url, to_send)
         .then((res) => {
@@ -170,6 +185,7 @@ export default {
           }
           this.selectedGeo = 'world';
           this.selectedSpecificGeo = null;
+          this.selectedLineage = null;
           this.overlay = false;
           this.expansionPanels.push(countNumAnalysis);
         });
@@ -186,7 +202,18 @@ export default {
         })
         .then((res) => {
           this.allGeo = JSON.parse(JSON.stringify(res));
-          this.overlay = false;
+
+          this.selectedLineage = null;
+          this.possibleLineage = [];
+          let url = `/automatic_analysis/getAllLineage`;
+          axios.get(url)
+            .then((res) => {
+              return res.data;
+            })
+            .then((res) => {
+              this.possibleLineage = JSON.parse(JSON.stringify(res));
+              this.overlay = false;
+            });
         });
   },
   watch: {

@@ -18,11 +18,9 @@ db = client.gcm_gisaid
 # collection_db = db.seq_2021_08_26_2
 collection_db = db.seq_test_0
 collection_update_date = db.db_meta
-collection_result_variant_db = db.prova_results_variant
-
+collection_result_variant_db = db.database_variants_test
 
 PATTERN = re.compile("([a-zA-Z0-9]+)_([a-zA-Z~@#$^*()_+=[\]{}|\\,.?: -]+)([\d]+)([a-zA-Z~@#$^*()_+=[\]{}|\\,.?: -]+)")
-
 
 world_growth_obj = {}
 
@@ -122,32 +120,32 @@ def lineage_growth(today_date, location_granularity, location_0, location_1, loc
     return result
 
 
-def get_all_mutation_not_characteristics(lineage, location_0, location_1, location_2, today_date, location_granularity,):
-
+def get_all_mutation_not_characteristics(lineage, location_0, location_1, location_2, today_date,
+                                         location_granularity, ):
     last_week_date = today_date.replace(day=today_date.day) - timedelta(days=7)
     previous_week_date = last_week_date.replace(day=last_week_date.day) - timedelta(days=7)
 
     query_count = {
-            'c_coll_date_prec': {
-                '$eq': 2
-            },
-            'collection_date': {
-                '$lt': today_date,
-                '$gte': previous_week_date
-            },
-            f'location.{location_granularity[0]}': {
-                '$eq': location_0
-            },
-            f'location.{location_granularity[1]}': {
-                '$eq': location_1
-            },
-            f'location.{location_granularity[2]}': {
-                '$eq': location_2
-            },
-            'covv_lineage': {
-                '$eq': lineage
-            },
-        }
+        'c_coll_date_prec': {
+            '$eq': 2
+        },
+        'collection_date': {
+            '$lt': today_date,
+            '$gte': previous_week_date
+        },
+        f'location.{location_granularity[0]}': {
+            '$eq': location_0
+        },
+        f'location.{location_granularity[1]}': {
+            '$eq': location_1
+        },
+        f'location.{location_granularity[2]}': {
+            '$eq': location_2
+        },
+        'covv_lineage': {
+            '$eq': lineage
+        },
+    }
 
     denominator_lineage = collection_db.count_documents(query_count)
 
@@ -225,7 +223,7 @@ def get_all_geo_last_week(location_granularity, today_date):
                        }
         },
         {"$sort":
-            {"count": -1}
+             {"count": -1}
          }
     ]
 
@@ -283,7 +281,7 @@ def get_all_lineage_for_each_geo(location_granularity, today_date):
                            }
             },
             {"$sort":
-                {"count": -1}
+                 {"count": -1}
              }
         ]
         results = collection_db.aggregate(query, allowDiskUse=True)
@@ -308,10 +306,6 @@ def get_all_lineage_for_each_geo(location_granularity, today_date):
         all_lineage_for_geo_last_week[name] = list_geo_lineage_dict
     print("fine request all_lineages")
     get_all_mutation_for_lineage_for_each_geo_previous_week(location_granularity, today_date)
-
-
-dict_count_aggregated_place = {}
-dict_aggregated_place = {}
 
 
 def populate_aggregate_place_dict(full_object, location_granularity, today_date, granularity):
@@ -354,16 +348,19 @@ def populate_aggregate_place_dict(full_object, location_granularity, today_date,
             specific_object_granularity[f'{location_granularity[1]}'] = location_1
             specific_object_granularity[f'{location_granularity[2]}'] = None
             specific_object_granularity['granularity'] = location_granularity[granularity]
+            specific_object_granularity['location'] = location_1
         elif granularity == 0:
             specific_object_granularity[f'{location_granularity[0]}'] = location_0
             specific_object_granularity[f'{location_granularity[1]}'] = None
             specific_object_granularity[f'{location_granularity[2]}'] = None
             specific_object_granularity['granularity'] = location_granularity[granularity]
+            specific_object_granularity['location'] = location_0
         else:
             specific_object_granularity[f'{location_granularity[0]}'] = None
             specific_object_granularity[f'{location_granularity[1]}'] = None
             specific_object_granularity[f'{location_granularity[2]}'] = None
             specific_object_granularity['granularity'] = 'world'
+            specific_object_granularity['location'] = 'World'
         dict_aggregated_place[distinct_name_granularity] = specific_object_granularity
     else:
         dict_aggregated_place[distinct_name_granularity]['count_prev_week'] = \
@@ -442,7 +439,7 @@ def get_all_mutation_for_lineage_for_each_geo_previous_week(location_granularity
     total_num_of_geo = len(geo_dict)
     for geo in geo_dict:
         i = i + 1
-        print("GEO: ", i, " / ", total_num_of_geo, '_time_: ', start)
+        print("GEO: ", i, " / ", total_num_of_geo, '_time_: ', today_date)
         location_0 = geo[f'{location_granularity[0]}']
         location_1 = geo[f'{location_granularity[1]}']
         location_2 = geo[f'{location_granularity[2]}']
@@ -464,10 +461,10 @@ def get_all_mutation_for_lineage_for_each_geo_previous_week(location_granularity
             # if lineage == 'B.1.617.2':
             all_mutations_dict = get_all_mutation_not_characteristics(lineage,
                                                                       location_0, location_1, location_2,
-                                                                      today_date, location_granularity,)
+                                                                      today_date, location_granularity, )
             mut_dict = all_mutations_dict
             for mut in mut_dict:
-                if '*' not in mut and '_-' not in mut:      # and 'Spike' in mut:
+                if '*' not in mut and '_-' not in mut:  # and 'Spike' in mut:
 
                     m = PATTERN.fullmatch(mut)
                     if m:
@@ -548,7 +545,8 @@ def get_all_mutation_for_lineage_for_each_geo_previous_week(location_granularity
                                        'perc_this_week': perc_this_week,
                                        'diff_perc': diff_perc,
                                        'date': today_date.strftime("%Y-%m-%d"),
-                                       'granularity': location_granularity[2]
+                                       'granularity': location_granularity[2],
+                                       'location': location_2
                                        }
 
                         # all_mutation_for_lineage_for_geo_previous_week.append(full_object)
@@ -620,37 +618,6 @@ def prova_query():
                     "count": {"$sum": 1}}},
     ]
 
-    # query = [
-    #     {
-    #         '$match': {
-    #               'c_coll_date_prec': {
-    #                 '$eq': 2
-    #               },
-    #               'collection_date': {
-    #                 '$lt': date1,
-    #                 '$gte': date2
-    #               },
-    #               'location.region':{
-    #                 '$eq': 'England'
-    #               },
-    #             'muts': {'$elemMatch':
-    #                          {'pro': 'NS8',
-    #                           'loc': 86,
-    #                           'alt': '-',
-    #                           'org': 'F',
-    #                           }
-    #                      },
-    #             }
-    #     }, {
-    #         '$group': {
-    #             '_id': {},
-    #             'count': {
-    #                 '$sum': 1
-    #             }
-    #         }
-    #     }
-    # ]
-
     res = collection_db.aggregate(query, allowDiskUse=True)
     print("prova results: ", list(res))
 
@@ -658,29 +625,84 @@ def prova_query():
 all_geo_granularity = ['geo_group', 'country', 'region']
 
 # prova_query()
-# array_date = ['2021-08-08', ..., '2021-10-31']
-array_date = ['2021-10-18', '2021-10-31']
+array_date = ['2021-10-31', '2021-10-24', '2021-10-17']
 for single_date in array_date:
     start = timeit.default_timer()
     date = datetime.strptime(single_date, '%Y-%m-%d')
+    dict_count_aggregated_place = {}
+    dict_aggregated_place = {}
+
+
 #    get_all_geo_last_week(location_granularity=all_geo_granularity, today_date=date)
 
 #######################################################
+
+
+@api.route('/getMostImportantResult')
+class FieldList(Resource):
+    @api.doc('get_most_important_result')
+    def get(self):
+        today_date = datetime.strptime(f"2021-10-31", '%Y-%m-%d')
+        array_of_dates = [today_date]
+        i = 0
+        while i < 3:
+            # if i == 0:
+            #     prev_date = array_of_dates[i].replace(day=array_of_dates[i].day) - timedelta(days=7)
+            # else:
+            prev_date = array_of_dates[i].replace(day=array_of_dates[i].day) - timedelta(days=7)
+            array_of_dates.append(prev_date)
+            i = i + 1
+
+        where_part = {}
+        array_or = []
+        for dt in array_of_dates:
+            specific_or = {'analysis_date': {'$eq': dt}}
+            array_or.append(specific_or)
+        where_part['$and'] = [{'$or': array_or}]
+
+        match_part = {'$match': where_part}
+        query = [match_part]
+        results = collection_result_variant_db.aggregate(query, allowDiskUse=True)
+
+        array_results = []
+        for res in list(results):
+            single_obj = {}
+            for key in res:
+                if key == 'analysis_date':
+                    single_obj[key] = str(res[key].strftime('%Y-%m-%d'))
+                elif key == 'granularity':
+                    single_obj[key] = res[key]
+                    if res[key] == 'world':
+                        single_obj['location'] = 'World'
+                    else:
+                        single_obj['location'] = res[res['granularity']]
+                else:
+                    single_obj[key] = res[key]
+            array_results.append(single_obj)
+
+        result_dict = create_unique_array_results(array_results, today_date)
+        array_to_change = list(result_dict.values())
+
+        array_to_return = []
+        for single_line in array_to_change:
+            for one_date in array_date:
+                name_variable_1 = 'p_value_with_mut_' + one_date
+                name_variable_2 = 'p_value_without_mut_' + one_date
+                name_variable_3 = 'p_value_comparative_mut_' + one_date
+                if name_variable_1 in single_line:
+                    if single_line[name_variable_1] < 0.05 and\
+                            single_line[name_variable_2] < 0.05 and\
+                            single_line[name_variable_3] < 0.05:
+                        array_to_return.append(single_line)
+                        break
+
+        return array_to_return
 
 
 @api.route('/getAllGeo')
 class FieldList(Resource):
     @api.doc('get_all_geo')
     def get(self):
-        # today_date = datetime.strptime("2021-08-08", '%Y-%m-%d')
-        # {
-        #     "$match": {
-        #         'analysis_date': {
-        #             '$eq': today_date
-        #         },
-        #     },
-        # },
-
         query = [
             {"$group": {"_id": {'geo_group': '$geo_group',
                                 'country': "$country",
@@ -688,7 +710,7 @@ class FieldList(Resource):
                                 },
                         }
              },
-            ]
+        ]
 
         results = collection_result_variant_db.aggregate(query, allowDiskUse=True)
 
@@ -707,6 +729,28 @@ class FieldList(Resource):
         return results
 
 
+@api.route('/getAllLineage')
+class FieldList(Resource):
+    @api.doc('get_all_lineage')
+    def get(self):
+        query = [
+            {"$group": {"_id": {'lineage': '$lineage',
+                                },
+                        }
+             },
+        ]
+
+        results = collection_result_variant_db.aggregate(query, allowDiskUse=True)
+
+        array_results = []
+        for single_item in results:
+            array_results.append(single_item['_id']['lineage'])
+
+        array_results.sort()
+
+        return array_results
+
+
 @api.route('/getStatistics')
 class FieldList(Resource):
     @api.doc('get_statistics')
@@ -714,10 +758,25 @@ class FieldList(Resource):
         payload = api.payload
         granularity = payload['granularity']
         location = payload['value']
-        payload_date = payload['date']
+        lineage = payload['lineage']
 
-        today_date = datetime.strptime(f"{payload_date}", '%Y-%m-%d')
-        where_part = {'analysis_date': {'$eq': today_date}}
+        today_date = datetime.strptime(f"2021-10-31", '%Y-%m-%d')
+        array_of_dates = [today_date]
+        i = 0
+        while i < 3:
+            # if i == 0:
+            #     prev_date = array_of_dates[i].replace(day=array_of_dates[i].day) - timedelta(days=7)
+            # else:
+            prev_date = array_of_dates[i].replace(day=array_of_dates[i].day) - timedelta(days=7)
+            array_of_dates.append(prev_date)
+            i = i + 1
+
+        where_part = {}
+        array_or = []
+        for dt in array_of_dates:
+            specific_or = {'analysis_date': {'$eq': dt}}
+            array_or.append(specific_or)
+        where_part['$and'] = [{'$or': array_or}]
 
         real_granularity_1 = 'world'
         real_granularity_2 = 'geo_group'
@@ -729,7 +788,7 @@ class FieldList(Resource):
             where_part['$or'] = array_conditions
             # where_part['granularity'] = {'$eq': granularity}
             where_part[granularity] = {'$eq': location}
-        if granularity == 'country':
+        elif granularity == 'country':
             real_granularity_1 = granularity
             real_granularity_2 = 'region'
             array_conditions = []
@@ -760,18 +819,145 @@ class FieldList(Resource):
             where_part['$or'] = array_conditions
             # where_part['granularity'] = {'$eq': real_granularity}
 
+        if lineage is not None:
+            where_part['lineage'] = {'$eq': lineage}
+
         match_part = {'$match': where_part}
         query = [match_part]
         results = collection_result_variant_db.aggregate(query, allowDiskUse=True)
 
         array_results = []
         for res in list(results):
-            single_obj = {'location': 'World'}
+            single_obj = {}
             for key in res:
                 if key == 'analysis_date':
-                    single_obj[key] = str(res[key]).split("T")[0]
+                    single_obj[key] = str(res[key].strftime('%Y-%m-%d'))
+                elif key == 'granularity':
+                    single_obj[key] = res[key]
+                    if res[key] == 'world':
+                        single_obj['location'] = 'World'
+                    else:
+                        single_obj['location'] = res[res['granularity']]
                 else:
                     single_obj[key] = res[key]
             array_results.append(single_obj)
 
-        return array_results
+        result_dict = create_unique_array_results(array_results, today_date)
+        array_to_return = list(result_dict.values())
+        return array_to_return
+
+
+def create_unique_array_results(array_results, today_date):
+    result_dict = {}
+    for single_res in array_results:
+        single_obj = {}
+        if single_res['location'] is None:
+            location = 'none'
+        else:
+            location = single_res['location']
+        if single_res['lineage'] is None:
+            lineage = 'none'
+        else:
+            lineage = single_res['lineage']
+        if single_res['mut'] is None:
+            mut = 'none'
+        else:
+            mut = single_res['mut']
+        if single_res['granularity'] is None:
+            granularity = 'none'
+        else:
+            granularity = single_res['granularity']
+        id_single_obj = location + granularity + lineage + mut
+        if id_single_obj not in result_dict:
+            analysis_date = single_res['analysis_date']
+            for key in single_res:
+                if key == 'p_value_comparative_mut' or \
+                        key == 'p_value_without_mut' or \
+                        key == 'diff_perc_without_mut' or \
+                        key == 'perc_without_mut_this_week' or \
+                        key == 'perc_without_mut_prev_week' or \
+                        key == 'count_without_mut_this_week' or \
+                        key == 'count_without_mut_prev_week' or \
+                        key == 'p_value_with_mut' or \
+                        key == 'diff_perc_with_mut' or \
+                        key == 'perc_with_mut_this_week' or \
+                        key == 'perc_with_mut_prev_week' or \
+                        key == 'count_with_mut_this_week' or \
+                        key == 'count_with_mut_prev_week':
+                    new_key = key + '_' + analysis_date
+                    single_obj[new_key] = single_res[key]
+                elif key == 'total_seq_pop_this_week_with_mut':
+                    new_key = 'total_seq_pop_this_week' + '_' + analysis_date
+                    single_obj[new_key] = single_res[key]
+                elif key == 'total_seq_pop_prev_week_with_mut':
+                    new_key = 'total_seq_pop_prev_week' + '_' + analysis_date
+                    single_obj[new_key] = single_res[key]
+                elif key == 'analysis_date':
+                    single_obj[key] = str(today_date.strftime('%Y-%m-%d'))
+                elif key == 'mut':
+                    single_obj['protein'] = single_res[key].split('_')[0]
+                    single_obj[key] = single_res[key].split('_')[1]
+                else:
+                    if key != 'total_seq_world_prev_week' and \
+                            key != 'total_seq_world_this_week':
+                        single_obj[key] = single_res[key]
+                key_lineage_1 = 'total_seq_lineage_this_week' + '_' + analysis_date
+                single_obj[key_lineage_1] = single_res['count_with_mut_this_week'] \
+                                          + single_res['count_without_mut_this_week']
+                key_lineage_2 = 'total_seq_lineage_prev_week' + '_' + analysis_date
+                single_obj[key_lineage_2] = single_res['count_with_mut_prev_week'] \
+                                          + single_res['count_without_mut_prev_week']
+                key_diff = 'diff_perc' + '_' + analysis_date
+                if single_obj[key_lineage_1] != 0:
+                    factor_1 = single_res['count_with_mut_this_week'] / single_obj[key_lineage_1]
+                else:
+                    factor_1 = 0
+                if single_obj[key_lineage_2] != 0:
+                    factor_2 = single_res['count_with_mut_prev_week'] / single_obj[key_lineage_2]
+                else:
+                    factor_2 = 0
+                single_obj[key_diff] = (factor_1 - factor_2)*100
+
+            result_dict[id_single_obj] = single_obj
+        else:
+            analysis_date = single_res['analysis_date']
+            for key in single_res:
+                if key == 'p_value_comparative_mut' or \
+                        key == 'p_value_without_mut' or \
+                        key == 'diff_perc_without_mut' or \
+                        key == 'perc_without_mut_this_week' or \
+                        key == 'perc_without_mut_prev_week' or \
+                        key == 'count_without_mut_this_week' or \
+                        key == 'count_without_mut_prev_week' or \
+                        key == 'p_value_with_mut' or \
+                        key == 'diff_perc_with_mut' or \
+                        key == 'perc_with_mut_this_week' or \
+                        key == 'perc_with_mut_prev_week' or \
+                        key == 'count_with_mut_this_week' or \
+                        key == 'count_with_mut_prev_week':
+                    new_key = key + '_' + analysis_date
+                    result_dict[id_single_obj][new_key] = single_res[key]
+                elif key == 'total_seq_pop_this_week_with_mut':
+                    new_key = 'total_seq_pop_this_week' + '_' + analysis_date
+                    result_dict[id_single_obj][new_key] = single_res[key]
+                elif key == 'total_seq_pop_prev_week_with_mut':
+                    new_key = 'total_seq_pop_prev_week' + '_' + analysis_date
+                    result_dict[id_single_obj][new_key] = single_res[key]
+                key_lineage_1 = 'total_seq_lineage_this_week' + '_' + analysis_date
+                result_dict[id_single_obj][key_lineage_1] = single_res['count_with_mut_this_week'] \
+                                                          + single_res['count_without_mut_this_week']
+                key_lineage_2 = 'total_seq_lineage_prev_week' + '_' + analysis_date
+                result_dict[id_single_obj][key_lineage_2] = single_res['count_with_mut_prev_week'] \
+                                                          + single_res['count_without_mut_prev_week']
+                key_diff = 'diff_perc' + '_' + analysis_date
+                if result_dict[id_single_obj][key_lineage_1] != 0:
+                    factor_1 = single_res['count_with_mut_this_week'] / result_dict[id_single_obj][key_lineage_1]
+                else:
+                    factor_1 = 0
+                if result_dict[id_single_obj][key_lineage_2] != 0:
+                    factor_2 = single_res['count_with_mut_prev_week'] / result_dict[id_single_obj][key_lineage_2]
+                else:
+                    factor_2 = 0
+                result_dict[id_single_obj][key_diff] = (factor_1 - factor_2)*100
+
+    return result_dict
