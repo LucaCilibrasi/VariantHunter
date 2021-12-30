@@ -1,15 +1,5 @@
 <template>
-  <v-layout row wrap justify-center style="padding: 30px;">
-    <v-flex class="no-horizontal-padding xs12 md4 lg2 d-flex" style="justify-content: center;" v-if="mostImportant">
-      <v-autocomplete
-        v-model="selectedLocationFirstTable"
-        :items="possibleLocationFirstTable"
-        label="Location"
-        solo
-        hide-details
-        clearable
-      ></v-autocomplete>
-    </v-flex>
+  <v-layout row wrap justify-center style="padding-top: 30px;">
     <v-flex class="no-horizontal-padding xs12 md4 lg2 d-flex" style="justify-content: center;">
       <v-autocomplete
         v-model="selectedLineage"
@@ -30,18 +20,29 @@
         clearable
       ></v-autocomplete>
     </v-flex>
-    <v-flex class="no-horizontal-padding xs12 md4 lg2 d-flex" style="justify-content: center;" v-if="!mostImportant">
-      <v-checkbox v-model="viewSubPlaces"
-      hide-details
-      input-value="true"
-      label="show sub-places"
-      :disabled="!checkSubPlaces">
-      </v-checkbox>
+
+    <v-flex class="no-horizontal-padding xs12 d-flex" style="justify-content: center;">
+      <v-switch
+        v-model="switch_alert"
+      >
+        <template v-slot:label>
+          <span style="color: white">Only Important Mutation</span>
+       </template>
+      </v-switch>
     </v-flex>
+
+    <v-flex class="no-horizontal-padding xs8 d-flex" style="justify-content: center;">
+    </v-flex>
+    <v-flex class="no-horizontal-padding xs4 d-flex" style="justify-content: center;">
+      <v-btn @click="dialogTableHeaders = true" color="primary">
+        INFO TABLE'S HEADERS
+      </v-btn>
+    </v-flex>
+
     <v-flex class="no-horizontal-padding xs12 d-flex" style="justify-content: center;">
           <v-data-table
                 :headers="headerTable"
-                :items="rowsTableFiltered"
+                :items="filteredResults"
                 class="data-table table_prov_reg"
                 style="width: 98%; border: grey solid 1px"
                 multi-sort
@@ -73,54 +74,39 @@
               </template>
           </v-data-table>
     </v-flex>
-    <v-flex class="no-horizontal-padding xs12 d-flex" style="justify-content: center;" v-if="viewSubPlaces">
-      <v-layout row wrap justify-center>
-        <v-flex class="no-horizontal-padding xs12 md4 lg2 d-flex" style="justify-content: center;">
-          <v-autocomplete
-            v-model="selectedLocation"
-            :items="possibleLocation"
-            label="Location"
-            solo
-            hide-details
-            clearable
-          ></v-autocomplete>
-        </v-flex>
-        <v-flex class="no-horizontal-padding xs12 d-flex" style="justify-content: center;" v-if="viewSubPlaces">
-              <v-data-table
-                    :headers="headerTableSubPlaces"
-                    :items="rowsTableSubPlacesFiltered"
-                    class="data-table table_prov_reg"
-                    style="width: 98%; border: grey solid 1px"
-                    multi-sort
-                    :sort-by.sync="sortByTableSubPlaces"
-                    :sort-desc.sync="sortDescTableSubPlaces"
-              >
-                  <template v-slot:item ="{ item }">
-                    <tr>
-                      <td style="white-space:pre-wrap; word-wrap:break-word; text-align: center" v-for="header in headerTableSubPlaces"
-                          :key="header.value" v-show="header.show">
-                            <span v-if="header.value === 'info'">
-                                <v-btn
-                                  class="info-button"
-                                  x-small
-                                  text icon color="blue"
-                                   @click.stop="handleClickRow(item)">
-                                  <v-icon class="info-icon">mdi-information</v-icon>
-                                </v-btn>
-                            </span>
-                            <span v-else-if="header.value !== 'location' && header.value !== 'lineage'
-                            && header.value !== 'protein' && header.value !== 'mut' && item[header.value] !== null
-                            && item[header.value] !== undefined"
-                                  style="white-space: pre-line">{{Number.parseFloat(item[header.value]).toPrecision(4)}}
-                            </span>
-                            <span v-else style="white-space: pre-line"> {{item[header.value]}}</span>
-                      </td>
-                    </tr>
-                  </template>
-              </v-data-table>
-        </v-flex>
-      </v-layout>
-    </v-flex>
+
+
+    <v-dialog
+      persistent
+      v-model="dialogTableHeaders"
+      width="1300"
+      >
+        <v-card>
+          <v-card-title class="white--text" v-bind:style="{ backgroundColor: 'grey' }">
+            INFO TABLE'S HEADERS
+            <v-spacer></v-spacer>
+            <v-btn
+                style="background-color: red"
+                slot="activator"
+                icon
+                small
+                color="white"
+                @click="dialogTableHeaders = false"
+            >
+              X
+            </v-btn>
+          </v-card-title>
+
+          <v-card-text class="text-xs-center" style="padding: 20px">
+            <li><b>P value without mut: </b>  ... </li>
+            <li><b>P value with mut: </b>  ... </li>
+            <li><b>P value comparative: </b>  ... </li>
+            <li><b>Polyfit: </b>  ... </li>
+          </v-card-text>
+
+        </v-card>
+      </v-dialog>
+
 
     <v-dialog
       persistent
@@ -159,33 +145,57 @@
 
         </v-card>
       </v-dialog>
+    <v-flex class="no-horizontal-padding xs12 d-flex" style="justify-content: center;" v-if="showCharts">
+      <HeatmapMuts
+        :nameHeatmap="nameHeatmap"
+        :mutsData="filteredResults"
+        :singleInfo= "singleInfo"
+        :sortColumn="sortByTable"
+        :descColumn="sortDescTable">
+      </HeatmapMuts>
+    </v-flex>
+
+    <v-flex class="no-horizontal-padding xs12 d-flex" style="justify-content: center;" v-if="showCharts">
+      <BarChartPrevalence
+        :time-name="timeName"
+        :time-distribution="filteredResults"
+        :singleInfo = "singleInfo"
+        :sortColumn="sortByTable"
+        :descColumn="sortDescTable"
+        style="padding: 0; width: 100%">
+      </BarChartPrevalence>
+    </v-flex>
 
   </v-layout>
 </template>
 
 <script>
 import {mapActions, mapGetters, mapMutations, mapState} from "vuex";
+import HeatmapMuts from "@/components/HeatmapMuts";
+import BarChartPrevalence from "@/components/BarChartPrevalence";
 
 export default {
   name: "TablesComponent",
+  components: {BarChartPrevalence, HeatmapMuts},
   props: {
     rowsTable: {required: true,},
-    rowsTableSubPlaces: {required: true,},
-    mostImportant: {required: true}
+    singleInfo: {required: true},
+    nameHeatmap: {required: true},
+    timeName: {required: true}
   },
   data() {
     return {
+      switch_alert: true,
+      filteredResults: [],
+      showCharts: false,
+      maxNumberOfImportantMuts: 20,
+
       headerTable: [],
       headerTableSubPlaces: [],
-      rowsTableFiltered: [],
-      rowsTableSubPlacesFiltered: [],
       sortByTable: [],
       sortDescTable: [],
       sortByTableSubPlaces: [],
       sortDescTableSubPlaces: [],
-
-      checkSubPlaces: true,
-      viewSubPlaces: false,
 
       selectedLineage: null,
       possibleLineage: [],
@@ -198,6 +208,7 @@ export default {
 
       dialogSelectedItem: false,
       selectedItem: null,
+      dialogTableHeaders: false,
     }
   },
   computed: {
@@ -453,7 +464,6 @@ export default {
       this.dialogSelectedItem = false;
     },
     loadTables(){
-      this.checkSubPlaces = this.rowsTableSubPlaces.length !== 0;
 
       let predefined_headers = [
           {text: 'Info', value: 'info', sortable: false, show: true, align: 'center', width: '3vh'},
@@ -461,6 +471,7 @@ export default {
           {text: 'Lineage', value: 'lineage', sortable: true, show: true, align: 'center', width: '13vh'},
           {text: 'Protein', value: 'protein', sortable: true, show: true, align: 'center', width: '13vh'},
           {text: 'Mut', value: 'mut', sortable: true, show: true, align: 'center', width: '13vh'},
+          {text: 'Polyfit', value: 'polyfit', sortable: true, show: true, align: 'center', width: '13vh'},
       ]
 
       let additional_headers = [];
@@ -468,13 +479,14 @@ export default {
       //   'count_prev_week']
       let array_possible_header = [
           'p_value_comparative_mut',
+          'p_value_with_mut',
         'p_value_without_mut',
         // 'diff_perc_without_mut',
         //1'perc_without_mut_this_week',
         //1'perc_without_mut_prev_week',
         //1'count_without_mut_this_week',
         //1'count_without_mut_prev_week',
-        'p_value_with_mut',
+
         //'diff_perc',
         // 'diff_perc_with_mut',
         //1'perc_with_mut_this_week',
@@ -487,7 +499,7 @@ export default {
         //1'total_seq_pop_prev_week'
       ]
 
-      let analysis_date = this.rowsTable[0]['analysis_date'];
+      let analysis_date = this.singleInfo['date'];
       for(let i = 0; i < array_possible_header.length; i++){
         let value = array_possible_header[i] + '_' + analysis_date;
         let text = array_possible_header[i] + '_' + analysis_date + '\n';
@@ -498,7 +510,9 @@ export default {
         additional_headers.unshift(single_header);
       }
 
-      for(let j=0; j<2; j=j+1){
+      let max = this.singleInfo['weekNum'] - 1;
+
+      for(let j=0; j<max; j=j+1){
         let this_date = new Date(analysis_date);
         let days = 7 ;
         // if(j === 0) {
@@ -525,10 +539,7 @@ export default {
       this.headerTable = predefined_headers;
       this.headerTableSubPlaces = predefined_headers;
 
-      this.rowsTableFiltered = JSON.parse(JSON.stringify(this.rowsTable));
-      this.rowsTableSubPlacesFiltered = JSON.parse(JSON.stringify(this.rowsTableSubPlaces));
-
-      this.rowsTable.forEach(elem => {
+      this.filteredResults.forEach(elem => {
         let lineage = elem['lineage'];
         let protein = elem['muts'][0]['pro'];
 
@@ -560,19 +571,10 @@ export default {
 
       });
 
-      this.rowsTableSubPlaces.forEach(elem => {
-        let location = elem[this.rowsTableSubPlaces[0]['granularity']];
-
-        if (!this.possibleLocation.includes(location)){
-          this.possibleLocation.push(location);
-        }
-        this.possibleLocation.sort();
-      });
-
     },
-    filterRows(){
+    doFilterOnResults(){
       let that = this;
-      this.rowsTableFiltered = JSON.parse(JSON.stringify(this.rowsTable)).filter(function (el) {
+      let partially_filtered = JSON.parse(JSON.stringify(this.rowsTable)).filter(function (el) {
         return (
             (that.selectedLineage === null || el['lineage'] ===  that.selectedLineage)
             &&
@@ -581,37 +583,51 @@ export default {
             (that.selectedLocationFirstTable === null || el[that.rowsTable[0]['granularity']] ===  that.selectedLocationFirstTable)
         )
       });
-      this.rowsTableSubPlacesFiltered = JSON.parse(JSON.stringify(this.rowsTableSubPlaces)).filter(function (el) {
-        return (
-            (that.selectedLineage === null || el['lineage'] ===  that.selectedLineage)
-            &&
-            (that.selectedProtein === null || el['muts'][0]['pro'] ===  that.selectedProtein)
-            &&
-            (that.selectedLocation === null || el[that.rowsTableSubPlaces[0]['granularity']] ===  that.selectedLocation)
-        )
-      });
+      if(this.switch_alert){
+        let copyResults = JSON.parse(JSON.stringify(partially_filtered));
+        let copyResults2 = this.customSort(copyResults, ['polyfit'], [false]);
+        this.filteredResults = JSON.parse(JSON.stringify(copyResults2.slice(0, this.maxNumberOfImportantMuts)));
+      }
+      else{
+        this.filteredResults = JSON.parse(JSON.stringify(partially_filtered));
+      }
+      if(this.switch_alert){
+        this.showCharts = true;
+      }
+      else{
+        if(this.filteredResults.length <= 50){
+          this.showCharts = true;
+        }
+        else{
+          this.showCharts = false;
+        }
+      }
     },
   },
   mounted() {
-    if(this.rowsTable.length > 0) {
+    this.doFilterOnResults();
+    if(this.filteredResults.length > 0) {
       this.loadTables();
     }
   },
   watch: {
+    switch_alert(){
+      this.doFilterOnResults();
+    },
     selectedLineage(){
-      this.filterRows();
+      this.doFilterOnResults();
     },
     selectedProtein(){
-      this.filterRows();
+      this.doFilterOnResults();
     },
     selectedLocation(){
-      this.filterRows();
+      this.doFilterOnResults();
     },
     selectedLocationFirstTable(){
-      this.filterRows();
+      this.doFilterOnResults();
     },
-    rowsTable(){
-      if(this.rowsTable.length > 0) {
+    filteredResults(){
+      if(this.filteredResults.length > 0) {
         this.loadTables();
       }
     }
@@ -621,14 +637,14 @@ export default {
 
 <style scoped>
 
-tbody td:nth-of-type(6),td:nth-of-type(7),td:nth-of-type(8),
-      td:nth-of-type(12),td:nth-of-type(13),td:nth-of-type(14){
+tbody td:nth-of-type(7),td:nth-of-type(8),td:nth-of-type(9),
+      td:nth-of-type(13),td:nth-of-type(14),td:nth-of-type(15){
   background-color: rgba(0, 0, 0, .05);
   border-left: solid 1px grey;
 }
 
-tbody td:nth-of-type(9),td:nth-of-type(10),td:nth-of-type(11),
-      td:nth-of-type(15),td:nth-of-type(16),td:nth-of-type(17){
+tbody td:nth-of-type(10),td:nth-of-type(11),td:nth-of-type(12),
+      td:nth-of-type(16),td:nth-of-type(17),td:nth-of-type(18){
   background-color: rgba(0, 0, 0, .15);
   border-left: solid 1px grey;
 }

@@ -1,18 +1,11 @@
 <template>
   <v-app>
-      <v-toolbar dark :color="toolbar_color" style="width: 100%;">
+      <v-toolbar dark :color="toolbar_color" style="width: 100%; max-height:65px">
         <v-img :src="require('./images/virusurf_logo.png')" contain max-width="39px" max-height="39px"></v-img>
         <v-toolbar-title class="headline" style="font-size: 32px !important; margin-left: 20px">
             <span>Variant</span>
             <span class="font-weight-light"> Hunter</span>
         </v-toolbar-title>
-
-        <span style="font-size: 20px; white-space: nowrap; margin-left: 50px">enabled by data from
-            <a href="https://www.gisaid.org" target="_blank">
-                <img style="vertical-align: middle;" :src="require('./assets/gisaid.png')" alt="gisaid-logo"
-                     height="24px"/>
-            </a>
-        </span>
 
         <v-spacer></v-spacer>
 
@@ -47,14 +40,14 @@
               <img style="vertical-align: middle;" :src="require('./assets/enabled_gisaid_white.png')" alt="gisaid-logo"
                      height="40px"/>
           </v-btn>
-          <v-btn icon text href="https://github.com/DEIB-GECO/ViruClust/wiki" target="_blank"
-                 style="background-color: transparent; width: 100px">
-              <span>Wiki</span>
-          </v-btn>
-          <v-btn icon text href="/viruclust_gisaid/repo_static/about__viruclust.html" target="_blank"
-            style="background-color: transparent; width: 100px">
-              <span>ABOUT</span>
-          </v-btn>
+<!--          <v-btn icon text href="https://github.com/DEIB-GECO/ViruClust/wiki" target="_blank"-->
+<!--                 style="background-color: transparent; width: 100px">-->
+<!--              <span>Wiki</span>-->
+<!--          </v-btn>-->
+<!--          <v-btn icon text href="/viruclust_gisaid/repo_static/about__viruclust.html" target="_blank"-->
+<!--            style="background-color: transparent; width: 100px">-->
+<!--              <span>ABOUT</span>-->
+<!--          </v-btn>-->
         </v-toolbar-items>
 
         <div class="hidden-xl-only">
@@ -120,22 +113,22 @@
                 </v-btn>
               </v-list-item-content>
           </v-list-item>
-          <v-list-item style="background-color: white; border-top: grey solid 1px">
-              <v-list-item-content>
-                <v-btn icon text href="https://github.com/DEIB-GECO/ViruClust/wiki" target="_blank"
-                       style="background-color: transparent; width: 200px">
-                    <span>Wiki</span>
-                </v-btn>
-              </v-list-item-content>
-          </v-list-item>
-          <v-list-item style="background-color: white; border-top: grey solid 1px">
-              <v-list-item-content>
-                <v-btn icon text href="/viruclust_gisaid/repo_static/about__viruclust.html" target="_blank"
-                  style="background-color: transparent; width: 200px">
-                    <span>ABOUT</span>
-                </v-btn>
-              </v-list-item-content>
-          </v-list-item>
+<!--          <v-list-item style="background-color: white; border-top: grey solid 1px">-->
+<!--              <v-list-item-content>-->
+<!--                <v-btn icon text href="https://github.com/DEIB-GECO/ViruClust/wiki" target="_blank"-->
+<!--                       style="background-color: transparent; width: 200px">-->
+<!--                    <span>Wiki</span>-->
+<!--                </v-btn>-->
+<!--              </v-list-item-content>-->
+<!--          </v-list-item>-->
+<!--          <v-list-item style="background-color: white; border-top: grey solid 1px">-->
+<!--              <v-list-item-content>-->
+<!--                <v-btn icon text href="/viruclust_gisaid/repo_static/about__viruclust.html" target="_blank"-->
+<!--                  style="background-color: transparent; width: 200px">-->
+<!--                    <span>ABOUT</span>-->
+<!--                </v-btn>-->
+<!--              </v-list-item-content>-->
+<!--          </v-list-item>-->
         </v-menu>
         </div>
 
