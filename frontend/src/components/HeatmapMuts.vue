@@ -21,6 +21,7 @@ export default {
     singleInfo: {required: true},
     sortColumn: {required: true,},
     descColumn: {required: true,},
+    withLineages: {required: true}
   },
   data() {
     return {
@@ -314,7 +315,13 @@ export default {
       }
 
       for(let j=0; j<met.length; j++){
-        let name = met[j]['protein'] + '_' + met[j]['mut'];
+        let name;
+        if(this.withLineages) {
+          name = met[j]['lineage'] + '_' + met[j]['protein'] + '_' + met[j]['mut'];
+        }
+        else{
+          name = met[j]['protein'] + '_' + met[j]['mut'];
+        }
         this.y_axis.push(name);
         for(let k=0; k<this.x_axis.length; k++){
           let key = 'p_value_comparative_mut_' + this.x_axis[k];

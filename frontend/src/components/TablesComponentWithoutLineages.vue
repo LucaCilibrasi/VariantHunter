@@ -193,7 +193,7 @@ import HeatmapMuts from "@/components/HeatmapMuts";
 import BarChartPrevalence from "@/components/BarChartPrevalence";
 
 export default {
-  name: "TablesComponent",
+  name: "TablesComponentWithoutLineages",
   components: {BarChartPrevalence, HeatmapMuts},
   props: {
     rowsTable: {required: true,},
@@ -631,7 +631,8 @@ export default {
       });
       if(this.switch_alert){
         let copyResults = JSON.parse(JSON.stringify(partially_filtered));
-        let copyResults2 = this.customSort(copyResults, ['polyfit'], [false]);
+        //// FILTRO I PIU ALTI
+        let copyResults2 = this.customSort(copyResults, ['polyfit'], [true]);
         this.filteredResults = JSON.parse(JSON.stringify(copyResults2.slice(0, this.maxNumberOfImportantMuts)));
       }
       else{
@@ -694,14 +695,14 @@ export default {
 
 <style scoped>
 
-tbody td:nth-of-type(7),td:nth-of-type(8),td:nth-of-type(9),
-      td:nth-of-type(13),td:nth-of-type(14),td:nth-of-type(15){
+tbody td:nth-of-type(6),td:nth-of-type(7),td:nth-of-type(8), td:nth-of-type(9),
+      td:nth-of-type(14),td:nth-of-type(15),td:nth-of-type(16), td:nth-of-type(17){
   background-color: rgba(0, 0, 0, .05);
   border-left: solid 1px grey;
 }
 
-tbody td:nth-of-type(10),td:nth-of-type(11),td:nth-of-type(12),
-      td:nth-of-type(16),td:nth-of-type(17),td:nth-of-type(18){
+tbody td:nth-of-type(10),td:nth-of-type(11),td:nth-of-type(12), td:nth-of-type(13),
+      td:nth-of-type(18),td:nth-of-type(19),td:nth-of-type(20), td:nth-of-type(21){
   background-color: rgba(0, 0, 0, .15);
   border-left: solid 1px grey;
 }

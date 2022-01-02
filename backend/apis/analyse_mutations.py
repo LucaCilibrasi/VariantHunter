@@ -16,7 +16,6 @@ uri = "mongodb://localhost:27017/gcm_gisaid"
 client = MongoClient(uri)
 db = client.gcm_gisaid
 collection_db = db.viruclust_db_0
-collection_update_date = db.db_meta
 
 # client = MongoClient(host='test_mongodb',
 #                      port=27017,
@@ -25,7 +24,9 @@ collection_update_date = db.db_meta
 #                      authSource="admin")
 # db = client["viruclust_db"]
 # collection_db = db.viruclust_db_0
-# database_name = 'viruclust_db_0'
+
+# collection_update_date = db.db_meta
+database_name = 'viruclust_db_0'
 
 PATTERN = re.compile("([a-zA-Z0-9]+)_([a-zA-Z~@#$^*()_+=[\]{}|\\,.?: -]+)([\d]+)([a-zA-Z~@#$^*()_+=[\]{}|\\,.?: -]+)")
 
@@ -375,7 +376,8 @@ def get_all_mutation_for_lineage_for_each_geo_previous_week(date, granularity, r
         all_mutations_dict = get_all_mutation_not_characteristics(date, granularity, real_location, lineage)
         mut_dict = all_mutations_dict
         for mut in mut_dict:
-            if '*' not in mut and '_-' not in mut:  # and 'Spike' in mut:
+            #FILTER SPIKE
+            if '*' not in mut and '_-' not in mut and 'Spike' in mut:
 
                 print("mut analysis ---> ", date, real_location, lineage, mut)
 

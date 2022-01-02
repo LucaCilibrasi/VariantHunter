@@ -32,6 +32,7 @@ export default {
     singleInfo: {required: true},
     sortColumn: {required: true,},
     descColumn: {required: true,},
+    withLineages: {required: true}
   },
   data(){
     return {
@@ -372,7 +373,13 @@ export default {
             singleArrY.push(0);
           }
         }
-        let name = met[j]['protein'] + '_' + met[j]['mut'];
+        let name;
+        if(this.withLineages) {
+          name = met[j]['lineage'] + '_' + met[j]['protein'] + '_' + met[j]['mut'];
+        }
+        else{
+          name = met[j]['protein'] + '_' + met[j]['mut'];
+        }
         this.barChart.series.push({
               name: name,
               type: 'bar',
@@ -381,7 +388,7 @@ export default {
                 position: 'top',
                 formatter: '{a}',
                 rotate: -90,
-                offset: [-50, 5]
+                offset: [-60, 5]
               },
               data: singleArrY,
           });

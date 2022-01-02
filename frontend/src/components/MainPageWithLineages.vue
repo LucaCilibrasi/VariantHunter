@@ -171,8 +171,9 @@
                           <TablesComponent
                             :rowsTable="rowsTable[index]"
                             :singleInfo = expansionPanelsSingleInfo[index]
-                            :nameHeatmap="'heatmap' + index"
-                            :timeName="'timeDistribution'+index">
+                            :nameHeatmap="'heatmapWithLineage' + index"
+                            :timeName="'timeDistributionWithLineage'+index"
+                            :withLineages="true">
                           </TablesComponent>
                         </v-expansion-panel-content>
                       </v-expansion-panel>
@@ -199,11 +200,10 @@
 import {mapActions, mapGetters, mapMutations, mapState} from "vuex";
 import axios from "axios";
 import TablesComponent from "@/components/TablesComponent";
-import BarChartPrevalence from "@/components/BarChartPrevalence";
 
 export default {
-  name: "MainPage",
-  components: {BarChartPrevalence, TablesComponent},
+  name: "MainPageWithLineages",
+  components: {TablesComponent},
   data() {
     return {
       menu: false,
@@ -227,7 +227,7 @@ export default {
     }
   },
   computed: {
-    ...mapState(['background_card_color', 'menu_color', 'toolbar_color']),
+    ...mapState(['background_card_color', 'menu_color', 'toolbar_color', 'all_geo', 'all_lineages']),
     ...mapGetters({}),
   },
   methods: {
@@ -295,29 +295,16 @@ export default {
       this.selectedDate = new Date().toISOString().slice(0, 10);
       this.selectedSpecificGeo = null;
       this.possibleSpecificGeo = [];
-      this.overlay = true;
-      let url = `/analyse_mutations/getAllGeo`;
-      axios.get(url)
-        .then((res) => {
-          return res.data;
-        })
-        .then((res) => {
-          this.allGeo = JSON.parse(JSON.stringify(res));
-
-          this.selectedLineage = null;
-          this.possibleLineage = [];
-          let url = `/analyse_mutations/getAllLineage`;
-          axios.get(url)
-            .then((res) => {
-              return res.data;
-            })
-            .then((res) => {
-              this.possibleLineage = JSON.parse(JSON.stringify(res));
-              this.overlay = false;
-            });
-        });
+      this.allGeo = this.all_geo;
+      this.possibleLineage = this.all_lineages;
   },
   watch: {
+    all_geo(){
+      this.allGeo = this.all_geo;
+    },
+    all_lineages(){
+      this.possibleLineage = this.all_lineages;
+    },
     selectedGeo(){
       this.possibleSpecificGeo = [];
       let i = 0;

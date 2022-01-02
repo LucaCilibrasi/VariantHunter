@@ -4,6 +4,7 @@ from flask_restplus import Api
 # from .create_database import api as create_database
 from .automatic_analysis import api as automatic_analysis
 from .analyse_mutations import api as analyse_mutations
+from .analyse_mutations_without_lineages import api as analyse_mutations_without_lineages
 
 enable_doc = True
 
@@ -20,3 +21,4 @@ api.init_app(api_blueprint, add_specs=enable_doc)
 # api.add_namespace(create_database)
 api.add_namespace(automatic_analysis)
 api.add_namespace(analyse_mutations)
+api.add_namespace(analyse_mutations_without_lineages)
