@@ -377,7 +377,7 @@ def get_all_mutation_for_lineage_for_each_geo_previous_week(date, granularity, r
         mut_dict = all_mutations_dict
         for mut in mut_dict:
             #FILTER SPIKE
-            if '*' not in mut and '_-' not in mut and 'Spike' in mut:
+            if '*' not in mut and '_-' not in mut:  # and 'Spike' in mut:
 
                 print("mut analysis ---> ", date, real_location, lineage, mut)
 

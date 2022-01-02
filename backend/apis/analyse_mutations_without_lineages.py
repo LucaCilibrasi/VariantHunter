@@ -150,7 +150,7 @@ def get_all_mutation_for_each_geo_previous_week(date, granularity, real_location
     mut_dict = all_mutations_dict
     for mut in mut_dict:
         # FILTER ON SPIKE
-        if '*' not in mut and '_-' not in mut and 'Spike' in mut:
+        if '*' not in mut and '_-' not in mut:  # and 'Spike' in mut:
 
             print("mut analysis ---> ", date, real_location, mut)
 
