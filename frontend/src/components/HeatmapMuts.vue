@@ -81,7 +81,7 @@ export default {
           label: {
             show: true,
             formatter: function (params) {
-            return `${params.data[2].toPrecision(3)}`;
+            return `${Number.parseFloat(params.data[2]).toPrecision(2)}`;
           },
           },
         }]
@@ -324,7 +324,13 @@ export default {
         }
         this.y_axis.push(name);
         for(let k=0; k<this.x_axis.length; k++){
-          let key = 'p_value_comparative_mut_' + this.x_axis[k];
+          let key;
+          if(this.withLineages) {
+            key = 'p_value_comparative_mut_' + this.x_axis[k];
+          }
+          else{
+            key = 'perc_with_mut_this_week_' + this.x_axis[k];
+          }
           let value;
           // eslint-disable-next-line no-prototype-builtins
           if(met[j].hasOwnProperty(key)) {
@@ -355,6 +361,18 @@ export default {
       this.heatmap.grid.height =  (len_y * 20);
       let elem = document.getElementById(this.nameHeatmap);
       elem.style['height'] = (len_y * 20 + 400).toString()  + 'px';
+
+      if(this.withLineages){
+       this.heatmap.visualMap.min = 0;
+       this.heatmap.visualMap.max = 1;
+       this.heatmap.visualMap.color = ['#f6efa6', '#d88273', '#bf444c'];
+      }
+      else{
+        this.heatmap.visualMap.min = 0;
+        this.heatmap.visualMap.max = 100;
+        this.heatmap.visualMap.color = ['#bf444c', '#d88273', '#f6efa6'];
+      }
+
       this.my_chart.setOption(this.heatmap, true);
     },
   },

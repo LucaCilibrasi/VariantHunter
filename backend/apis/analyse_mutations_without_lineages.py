@@ -150,7 +150,7 @@ def get_all_mutation_for_each_geo_previous_week(date, granularity, real_location
     mut_dict = all_mutations_dict
     for mut in mut_dict:
         # FILTER ON SPIKE
-        if '*' not in mut and '_-' not in mut:  # and 'Spike' in mut:
+        if '*' not in mut and '_-' not in mut:  #  and 'Spike' in mut:
 
             print("mut analysis ---> ", date, real_location, mut)
 
@@ -307,7 +307,7 @@ def get_all_mutation_for_each_geo_previous_week(date, granularity, real_location
     print("fine all_mutation")
 
 
-def create_unique_array_results(array_results, today_date, array_date):
+def create_unique_array_results(array_results, today_date, array_date, function):
     result_dict = {}
     for single_res in array_results:
         single_obj = {}
@@ -361,22 +361,23 @@ def create_unique_array_results(array_results, today_date, array_date):
                     if key != 'total_seq_world_prev_week' and \
                             key != 'total_seq_world_this_week':
                         single_obj[key] = single_res[key]
-                key_lineage_1 = 'total_seq_lineage_this_week' + '_' + analysis_date
-                single_obj[key_lineage_1] = single_res['count_with_mut_this_week'] \
-                                            + single_res['count_without_mut_this_week']
-                key_lineage_2 = 'total_seq_lineage_prev_week' + '_' + analysis_date
-                single_obj[key_lineage_2] = single_res['count_with_mut_prev_week'] \
-                                            + single_res['count_without_mut_prev_week']
-                key_diff = 'diff_perc' + '_' + analysis_date
-                if single_obj[key_lineage_1] != 0:
-                    factor_1 = single_res['count_with_mut_this_week'] / single_obj[key_lineage_1]
-                else:
-                    factor_1 = 0
-                if single_obj[key_lineage_2] != 0:
-                    factor_2 = single_res['count_with_mut_prev_week'] / single_obj[key_lineage_2]
-                else:
-                    factor_2 = 0
-                single_obj[key_diff] = (factor_1 - factor_2) * 100
+                if function != 'selectedMuts':
+                    key_lineage_1 = 'total_seq_lineage_this_week' + '_' + analysis_date
+                    single_obj[key_lineage_1] = single_res['count_with_mut_this_week'] \
+                                                + single_res['count_without_mut_this_week']
+                    key_lineage_2 = 'total_seq_lineage_prev_week' + '_' + analysis_date
+                    single_obj[key_lineage_2] = single_res['count_with_mut_prev_week'] \
+                                                + single_res['count_without_mut_prev_week']
+                    key_diff = 'diff_perc' + '_' + analysis_date
+                    if single_obj[key_lineage_1] != 0:
+                        factor_1 = single_res['count_with_mut_this_week'] / single_obj[key_lineage_1]
+                    else:
+                        factor_1 = 0
+                    if single_obj[key_lineage_2] != 0:
+                        factor_2 = single_res['count_with_mut_prev_week'] / single_obj[key_lineage_2]
+                    else:
+                        factor_2 = 0
+                    single_obj[key_diff] = (factor_1 - factor_2) * 100
 
             result_dict[id_single_obj] = single_obj
         else:
@@ -403,49 +404,51 @@ def create_unique_array_results(array_results, today_date, array_date):
                 elif key == 'total_seq_pop_prev_week_with_mut':
                     new_key = 'total_seq_pop_prev_week' + '_' + analysis_date
                     result_dict[id_single_obj][new_key] = single_res[key]
-                key_lineage_1 = 'total_seq_lineage_this_week' + '_' + analysis_date
-                result_dict[id_single_obj][key_lineage_1] = single_res['count_with_mut_this_week'] \
-                                                            + single_res['count_without_mut_this_week']
-                key_lineage_2 = 'total_seq_lineage_prev_week' + '_' + analysis_date
-                result_dict[id_single_obj][key_lineage_2] = single_res['count_with_mut_prev_week'] \
-                                                            + single_res['count_without_mut_prev_week']
-                key_diff = 'diff_perc' + '_' + analysis_date
-                if result_dict[id_single_obj][key_lineage_1] != 0:
-                    factor_1 = single_res['count_with_mut_this_week'] / result_dict[id_single_obj][key_lineage_1]
+                if function != 'selectedMuts':
+                    key_lineage_1 = 'total_seq_lineage_this_week' + '_' + analysis_date
+                    result_dict[id_single_obj][key_lineage_1] = single_res['count_with_mut_this_week'] \
+                                                                + single_res['count_without_mut_this_week']
+                    key_lineage_2 = 'total_seq_lineage_prev_week' + '_' + analysis_date
+                    result_dict[id_single_obj][key_lineage_2] = single_res['count_with_mut_prev_week'] \
+                                                                + single_res['count_without_mut_prev_week']
+                    key_diff = 'diff_perc' + '_' + analysis_date
+                    if result_dict[id_single_obj][key_lineage_1] != 0:
+                        factor_1 = single_res['count_with_mut_this_week'] / result_dict[id_single_obj][key_lineage_1]
+                    else:
+                        factor_1 = 0
+                    if result_dict[id_single_obj][key_lineage_2] != 0:
+                        factor_2 = single_res['count_with_mut_prev_week'] / result_dict[id_single_obj][key_lineage_2]
+                    else:
+                        factor_2 = 0
+                    result_dict[id_single_obj][key_diff] = (factor_1 - factor_2) * 100
+
+    if function != 'selectedMuts':
+        array_to_del = []
+        for elem in result_dict:
+            json_obj = result_dict[elem]
+            i = 0
+            array_x_polyfit = []
+            array_y_polyfit = []
+            count = 0
+            for single_date in array_date:
+                array_x_polyfit.append(float(i))
+                i = i + 1
+                key = 'perc_with_mut_this_week' + '_' + single_date
+                if key in json_obj:
+                    count = count + 1
+                    array_y_polyfit.append(json_obj[key])
                 else:
-                    factor_1 = 0
-                if result_dict[id_single_obj][key_lineage_2] != 0:
-                    factor_2 = single_res['count_with_mut_prev_week'] / result_dict[id_single_obj][key_lineage_2]
-                else:
-                    factor_2 = 0
-                result_dict[id_single_obj][key_diff] = (factor_1 - factor_2) * 100
+                    array_y_polyfit.append(0.0)
+            print("qui", array_x_polyfit, array_y_polyfit)
+            z = np.polyfit(array_x_polyfit, array_y_polyfit, 1)
+            json_obj['polyfit'] = z[0]
 
-    array_to_del = []
-    for elem in result_dict:
-        json_obj = result_dict[elem]
-        i = 0
-        array_x_polyfit = []
-        array_y_polyfit = []
-        count = 0
-        for single_date in array_date:
-            array_x_polyfit.append(float(i))
-            i = i + 1
-            key = 'perc_with_mut_this_week' + '_' + single_date
-            if key in json_obj:
-                count = count + 1
-                array_y_polyfit.append(json_obj[key])
-            else:
-                array_y_polyfit.append(0.0)
-        print("qui", array_x_polyfit, array_y_polyfit)
-        z = np.polyfit(array_x_polyfit, array_y_polyfit, 1)
-        json_obj['polyfit'] = z[0]
+            min_count = (len(array_date) / 2) + 1
+            if count < min_count:
+                array_to_del.append(elem)
 
-        min_count = (len(array_date) / 2) + 1
-        if count < min_count:
-            array_to_del.append(elem)
-
-    for el in array_to_del:
-        del result_dict[el]
+        for el in array_to_del:
+            del result_dict[el]
 
     return result_dict
 
@@ -482,7 +485,129 @@ class FieldList(Resource):
             specific_date = datetime.strptime(single_date, '%Y-%m-%d')
             get_all_geo_last_week(specific_date, granularity, location, array_results)
 
-        result_dict = create_unique_array_results(array_results, datetime.strptime(date, '%Y-%m-%d'), array_date_2)
+        function2 = 'normal'
+        result_dict = create_unique_array_results(array_results, datetime.strptime(date, '%Y-%m-%d'), array_date_2, function2)
+        array_to_return = list(result_dict.values())
+        end = timeit.default_timer()
+        print("TIMER ", end - start)
+        return array_to_return
+
+
+@api.route('/analyzePeriodSelectedMuts')
+class FieldList(Resource):
+    @api.doc('analyze_period_selected_muts')
+    def post(self):
+        payload = api.payload
+        granularity = payload['granularity']
+        location = payload['location']
+        date = payload['date']
+        num_week = payload['numWeek']
+        list_of_muts = payload['listOfMutations']
+
+        i = 0
+        array_date = []
+        date_1 = date
+        start = timeit.default_timer()
+        array_date_2 = []
+        while i < num_week:
+            translated_date = datetime.strptime(date_1, '%Y-%m-%d')
+            array_date.append(date_1)
+            array_date_2.insert(0, date_1)
+            previous_week_date = translated_date.replace(day=translated_date.day) - timedelta(days=7)
+            date_1 = previous_week_date.strftime("%Y-%m-%d")
+            i = i + 1
+
+        array_results = []
+        for single_date in array_date:
+            print("DATE ", single_date)
+            analysis_date = datetime.strptime(single_date, '%Y-%m-%d')
+            last_week_date = analysis_date.replace(day=analysis_date.day) - timedelta(days=7)
+            for mut in list_of_muts:
+                print("mut analysis ---> ", single_date, location, mut)
+
+                m = PATTERN.fullmatch(mut)
+                if m:
+                    protein, orig, loc, alt = m.groups()
+                    orig = orig.replace('stop', '*')
+                    alt = alt.replace('stop', '*')
+
+                    loc = int(loc)
+                    if orig == 'ins':
+                        orig = '-' * len(alt)
+                        t = 'INS'
+                    elif alt == 'del':
+                        alt = '-'
+                        t = 'DEL'
+                    else:
+                        t = 'SUB'
+
+                    length = len(alt)
+                    new_mut = {'pro': protein, 'org': orig,
+                               'loc': loc, 'alt': alt,
+                               'typ': t, 'len': length}
+
+                    query = {
+                        'c_coll_date_prec': {
+                            '$eq': 2
+                        },
+                    }
+
+                    if granularity != 'world':
+                        query[f'location.{granularity}'] = {'$eq': location}
+
+                    query_with_mut_this_week = query.copy()
+                    query_without_mut_this_week = query.copy()
+
+                    query_with_mut_this_week['muts'] = {'$elemMatch': {
+                        'pro': new_mut['pro'],
+                        'loc': new_mut['loc'],
+                        'alt': new_mut['alt'],
+                        'org': new_mut['org'],
+                    }
+                    }
+                    query_with_mut_this_week['collection_date'] = {'$lt': analysis_date, '$gte': last_week_date}
+
+                    results_with_mut_this_week = collection_db.count_documents(query_with_mut_this_week)
+
+                    query_without_mut_this_week['muts'] = {'$not': {'$elemMatch': {
+                        'pro': new_mut['pro'],
+                        'loc': new_mut['loc'],
+                        'alt': new_mut['alt'],
+                        'org': new_mut['org'],
+                    }
+                    }
+                    }
+                    query_without_mut_this_week['collection_date'] = {'$lt': analysis_date, '$gte': last_week_date}
+
+                    results_without_mut_this_week = collection_db.count_documents(query_without_mut_this_week)
+
+                    denominator_this_week_with_mut = results_with_mut_this_week + results_without_mut_this_week
+
+                    if denominator_this_week_with_mut != 0:
+                        perc_with_mut_this_week = (
+                                                          results_with_mut_this_week / denominator_this_week_with_mut) * 100
+                    else:
+                        perc_with_mut_this_week = 0
+
+                    full_object = {f'{granularity}': location,
+                                   'mut': mut,
+                                   'muts': [new_mut],
+                                   'count_with_mut_this_week': results_with_mut_this_week,
+                                   'perc_with_mut_this_week': perc_with_mut_this_week,
+                                   'count_without_mut_this_week': results_without_mut_this_week,
+                                   'analysis_date': analysis_date.strftime("%Y-%m-%d"),
+                                   'granularity': granularity,
+                                   'location': location,
+                                   'lineage': None
+                                   }
+
+                    array_results.append(full_object)
+
+                else:
+                    print('======> ERROR', mut)
+
+        function2 = 'selectedMuts'
+        result_dict = create_unique_array_results(array_results, datetime.strptime(date, '%Y-%m-%d'), array_date_2, function2)
         array_to_return = list(result_dict.values())
         end = timeit.default_timer()
         print("TIMER ", end - start)

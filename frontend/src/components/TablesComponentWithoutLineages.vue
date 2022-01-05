@@ -46,7 +46,16 @@
        </v-layout>
     </v-flex>
 
-    <v-flex class="no-horizontal-padding xs12 md8 lg8 d-flex" style="justify-content: center;">
+    <v-flex class="no-horizontal-padding xs12 md4 lg4 d-flex" style="justify-content: center;">
+      <v-switch
+        v-model="switch_show_p_values"
+      >
+        <template v-slot:label>
+          <span style="color: white">Show P-values</span>
+       </template>
+      </v-switch>
+    </v-flex>
+    <v-flex class="no-horizontal-padding xs12 md4 lg4 d-flex" style="justify-content: center;">
     </v-flex>
     <v-flex class="no-horizontal-padding xs12 md4 lg4 d-flex" style="justify-content: center;">
       <v-btn @click="dialogTableHeaders = true" color="primary">
@@ -54,41 +63,61 @@
       </v-btn>
     </v-flex>
 
+    <v-flex class="no-horizontal-padding xs12 d-flex" style="justify-content: center">
+        <h2 style="color: white">TABLE<v-btn @click="downloadTable()" x-small icon
+                style="margin-left: 20px; margin-bottom: 5px; color: white">
+                  <v-icon size="23">
+                    mdi-download-circle-outline
+                  </v-icon>
+              </v-btn>
+        </h2>
+    </v-flex>
+
     <v-flex class="no-horizontal-padding xs12 md12 lg12 d-flex" style="justify-content: center;">
           <v-data-table
+                show-select
                 :headers="headerTable"
+                v-model="selectedRows"
+                item-key="mut"
                 :items="filteredResults"
                 :id = "nameHeatmap + 'table'"
-                class="data-table table_prov_reg"
+                class="data-table table_prov_reg mytable"
                 style="width: 98%; border: grey solid 1px"
                 multi-sort
                 :sort-by.sync="sortByTable"
                 :sort-desc.sync="sortDescTable"
                 :custom-sort="customSort"
           >
-              <template v-slot:item ="{ item }">
-                <tr>
-                  <td style="white-space:pre-wrap; word-wrap:break-word; text-align: center" v-for="header in headerTableSubPlaces"
-                          :key="header.value" v-show="header.show">
-                           <span v-if="header.value === 'info'">
-                                <v-btn
-                                  class="info-button"
-                                  x-small
-                                  text icon color="blue"
-                                   @click.stop="handleClickRow(item)">
-                                  <v-icon class="info-icon">mdi-information</v-icon>
-                                </v-btn>
-                            </span>
-                            <span v-else-if="header.value !== 'location' && header.value !== 'lineage'
-                            && header.value !== 'protein' && header.value !== 'mut' && item[header.value] !== null
-                            && item[header.value] !== undefined"
-                                  style="white-space: pre-line">{{Number.parseFloat(item[header.value]).toPrecision(2)}}
-                            </span>
-                            <span v-else style="white-space: pre-line"> {{item[header.value]}}</span>
-                      </td>
-                </tr>
-              </template>
+<!--              <template v-slot:item ="{ item }">-->
+<!--                <tr>-->
+<!--                  <td style="white-space:pre-wrap; word-wrap:break-word; text-align: center" v-for="header in headerTableSubPlaces"-->
+<!--                          :key="header.value" v-show="header.show">-->
+<!--                           <span v-if="header.value === 'info'">-->
+<!--                                <v-btn-->
+<!--                                  class="info-button"-->
+<!--                                  x-small-->
+<!--                                  text icon color="blue"-->
+<!--                                   @click.stop="handleClickRow(item)">-->
+<!--                                  <v-icon class="info-icon">mdi-information</v-icon>-->
+<!--                                </v-btn>-->
+<!--                            </span>-->
+<!--                            <span v-else-if="header.value !== 'location' && header.value !== 'lineage'-->
+<!--                            && header.value !== 'protein' && header.value !== 'mut' && item[header.value] !== null-->
+<!--                            && item[header.value] !== undefined"-->
+<!--                                  style="white-space: pre-line">{{Number.parseFloat(item[header.value]).toPrecision(2)}}-->
+<!--                            </span>-->
+<!--                            <span v-else style="white-space: pre-line"> {{item[header.value]}}</span>-->
+<!--                      </td>-->
+<!--                </tr>-->
+<!--              </template>-->
           </v-data-table>
+    </v-flex>
+
+    <v-flex class="no-horizontal-padding xs12 md12 lg12 d-flex" style="justify-content: center;">
+      <DialogAnalyseSelectedMuts
+      :selectedMuts="selectedRows"
+      :singleInfo = "singleInfo">
+      </DialogAnalyseSelectedMuts>
     </v-flex>
 
 
@@ -180,7 +209,7 @@
         :sortColumn="sortByTable"
         :descColumn="sortDescTable"
         :withLineages="withLineages"
-        style="padding: 0; width: 100%">
+        style="padding: 0; width: 100%; margin-top: 50px;">
       </BarChartPrevalence>
     </v-flex>
 
@@ -191,10 +220,11 @@
 import {mapActions, mapGetters, mapMutations, mapState} from "vuex";
 import HeatmapMuts from "@/components/HeatmapMuts";
 import BarChartPrevalence from "@/components/BarChartPrevalence";
+import DialogAnalyseSelectedMuts from "@/components/DialogAnalyseSelectedMuts";
 
 export default {
   name: "TablesComponentWithoutLineages",
-  components: {BarChartPrevalence, HeatmapMuts},
+  components: {DialogAnalyseSelectedMuts, BarChartPrevalence, HeatmapMuts},
   props: {
     rowsTable: {required: true,},
     singleInfo: {required: true},
@@ -205,9 +235,14 @@ export default {
   data() {
     return {
       switch_alert: true,
+      switch_show_p_values: false,
       filteredResults: [],
       showCharts: false,
       maxNumberOfImportantMuts: 20,
+
+      maxNumberSelectedMuts: 10,
+
+      selectedRows: [],
 
       headerTable: [],
       headerTableSubPlaces: [],
@@ -237,6 +272,39 @@ export default {
   methods: {
     ...mapMutations([]),
     ...mapActions([]),
+    downloadTable(){
+      let result_sorted = this.customSort(this.filteredResults, this.sortByTable, this.sortDescTable);
+      let text = this.json2csv(result_sorted, this.headerTable);
+      let filename = 'mutationTable.csv';
+      let element = document.createElement('a');
+      element.setAttribute('download', filename);
+      var data = new Blob([text]);
+      element.href = URL.createObjectURL(data);
+      document.body.appendChild(element);
+      element.click();
+      document.body.removeChild(element);
+    },
+    json2csv(input, selected_headers) {
+        var json = input;
+        var fields = [];
+        var fields2 = [];
+        selected_headers.forEach(function (el) {
+            fields.push(el.text.replaceAll("\n", ""));
+        });
+        selected_headers.forEach(function (el) {
+            fields2.push(el.value.replaceAll("\n", ""));
+        });
+        var csv = json.map(function (row) {
+            return fields2.map(function (fieldName) {
+                let string_val;
+                string_val = String(row[fieldName]);
+                string_val = string_val.replaceAll("\n", " ");
+                return JSON.stringify(string_val);
+            }).join(',')
+        });
+        csv.unshift(fields.join(','));
+        return csv.join('\r\n')
+    },
     customSort(items, index, isDesc) {
         if(index !== null && index !== undefined){
           let i = 0;
@@ -496,7 +564,7 @@ export default {
       let predefined_headers = [];
       if(this.withLineages) {
         predefined_headers = [
-          {text: 'Info', value: 'info', sortable: false, show: true, align: 'center', width: '3vh'},
+          // {text: 'Info', value: 'info', sortable: false, show: true, align: 'center', width: '3vh'},
           {text: 'Location', value: 'location', sortable: true, show: true, align: 'center', width: '13vh'},
           {text: 'Lineage', value: 'lineage', sortable: true, show: true, align: 'center', width: '13vh'},
           {text: 'Protein', value: 'protein', sortable: true, show: true, align: 'center', width: '13vh'},
@@ -506,7 +574,7 @@ export default {
       }
       else{
         predefined_headers = [
-          {text: 'Info', value: 'info', sortable: false, show: true, align: 'center', width: '3vh'},
+          // {text: 'Info', value: 'info', sortable: false, show: true, align: 'center', width: '3vh'},
           {text: 'Location', value: 'location', sortable: true, show: true, align: 'center', width: '13vh'},
           {text: 'Protein', value: 'protein', sortable: true, show: true, align: 'center', width: '13vh'},
           {text: 'Mut', value: 'mut', sortable: true, show: true, align: 'center', width: '13vh'},
@@ -517,27 +585,30 @@ export default {
       let additional_headers = [];
       // let array_possible_header = ['diff_perc', 'perc_this_week', 'perc_prev_week', 'count_this_week',
       //   'count_prev_week']
-      let array_possible_header = [
+      let array_possible_header = [];
+      if(this.switch_show_p_values) {
+        array_possible_header = [
           'p_value_comparative_mut',
           'p_value_with_mut',
-        'p_value_without_mut',
-        // 'diff_perc_without_mut',
-        //1'perc_without_mut_this_week',
-        //1'perc_without_mut_prev_week',
-        //1'count_without_mut_this_week',
-        //1'count_without_mut_prev_week',
+          'p_value_without_mut',
+          // 'diff_perc_without_mut',
+          //1'perc_without_mut_this_week',
+          //1'perc_without_mut_prev_week',
+          //1'count_without_mut_this_week',
+          //1'count_without_mut_prev_week',
 
-        //'diff_perc',
-        // 'diff_perc_with_mut',
-        //1'perc_with_mut_this_week',
-        //1'perc_with_mut_prev_week',
-        //1'count_with_mut_this_week',
-        //1'count_with_mut_prev_week',
-        //1'total_seq_lineage_this_week',
-        //1'total_seq_lineage_prev_week',
-        //1'total_seq_pop_this_week',
-        //1'total_seq_pop_prev_week'
-      ]
+          //'diff_perc',
+          // 'diff_perc_with_mut',
+          //1'perc_with_mut_this_week',
+          //1'perc_with_mut_prev_week',
+          //1'count_with_mut_this_week',
+          //1'count_with_mut_prev_week',
+          //1'total_seq_lineage_this_week',
+          //1'total_seq_lineage_prev_week',
+          //1'total_seq_pop_this_week',
+          //1'total_seq_pop_prev_week'
+        ]
+      }
 
       if(!this.withLineages){
         array_possible_header.unshift('perc_with_mut_this_week');
@@ -583,6 +654,7 @@ export default {
       this.headerTable = predefined_headers;
       this.headerTableSubPlaces = predefined_headers;
 
+      let i = 0;
       this.filteredResults.forEach(elem => {
         if(this.withLineages) {
           let lineage = elem['lineage'];
@@ -609,6 +681,23 @@ export default {
             //   this.possibleLocationFirstTable.push('N/D');
             // }
           }
+          Object.keys(elem).forEach(key => {
+            if((key.includes('perc_with_mut_this_week') ||
+                key.includes('p_value_comparative_mut') ||
+                key.includes('p_value_with_mut') ||
+                key.includes('p_value_without_mut') ||
+                key.includes('polyfit')) &&
+                elem[key] !== null
+                && elem[key] !== undefined){
+              elem[key] = Number.parseFloat(elem[key]).toPrecision(2);
+            }
+          });
+
+          if(i < this.maxNumberSelectedMuts && i < this.filteredResults.length){
+            this.selectedRows.push(elem);
+          }
+          i = i + 1;
+
         }
         // else{
         //   this.possibleLocationFirstTable.push('World');
@@ -656,16 +745,15 @@ export default {
     if(this.filteredResults.length > 0) {
       this.loadTables();
     }
-    if(this.withLineages){
-      let elem = document.getElementById(this.nameHeatmap + 'table');
-      elem['class'] = "data-table table_prov_reg withLineageClass";
-    }
-    else{
-      let elem = document.getElementById(this.nameHeatmap + 'table');
-      elem['class'] = "data-table table_prov_reg withoutLineageClass";
-    }
   },
   watch: {
+    selectedRows (val, oldVal) {
+      if (val.length > this.maxNumberSelectedMuts) {
+        this.$nextTick(() => {
+          this.selectedRows = oldVal
+        })
+      }
+    },
     switch_alert(){
       this.doFilterOnResults();
     },
@@ -688,20 +776,25 @@ export default {
       if(this.filteredResults.length > 0) {
         this.loadTables();
       }
+    },
+    switch_show_p_values(){
+      if(this.filteredResults.length > 0) {
+        this.loadTables();
+      }
     }
   },
 }
 </script>
 
-<style scoped>
+<style>
 
-tbody td:nth-of-type(6),td:nth-of-type(7),td:nth-of-type(8), td:nth-of-type(9),
+.v-data-table > .v-data-table__wrapper > table > tbody > tr >  td:nth-of-type(6),td:nth-of-type(7),td:nth-of-type(8), td:nth-of-type(9),
       td:nth-of-type(14),td:nth-of-type(15),td:nth-of-type(16), td:nth-of-type(17){
   background-color: rgba(0, 0, 0, .05);
   border-left: solid 1px grey;
 }
 
-tbody td:nth-of-type(10),td:nth-of-type(11),td:nth-of-type(12), td:nth-of-type(13),
+.v-data-table > .v-data-table__wrapper > table > tbody > tr >  td:nth-of-type(10),td:nth-of-type(11),td:nth-of-type(12), td:nth-of-type(13),
       td:nth-of-type(18),td:nth-of-type(19),td:nth-of-type(20), td:nth-of-type(21){
   background-color: rgba(0, 0, 0, .15);
   border-left: solid 1px grey;

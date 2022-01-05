@@ -54,6 +54,16 @@
       </v-btn>
     </v-flex>
 
+    <v-flex class="no-horizontal-padding xs12 d-flex" style="justify-content: center">
+        <h2 style="color: white">TABLE<v-btn @click="downloadTable()" x-small icon
+                style="margin-left: 20px; margin-bottom: 5px; color: white">
+                  <v-icon size="23">
+                    mdi-download-circle-outline
+                  </v-icon>
+              </v-btn>
+        </h2>
+    </v-flex>
+
     <v-flex class="no-horizontal-padding xs12 md12 lg12 d-flex" style="justify-content: center;">
           <v-data-table
                 :headers="headerTable"
@@ -180,7 +190,7 @@
         :sortColumn="sortByTable"
         :descColumn="sortDescTable"
         :withLineages="withLineages"
-        style="padding: 0; width: 100%">
+        style="padding: 0; width: 100%;  margin-top: 50px;">
       </BarChartPrevalence>
     </v-flex>
 
@@ -208,6 +218,8 @@ export default {
       filteredResults: [],
       showCharts: false,
       maxNumberOfImportantMuts: 20,
+
+      selectedRows: [],
 
       headerTable: [],
       headerTableSubPlaces: [],
@@ -237,6 +249,39 @@ export default {
   methods: {
     ...mapMutations([]),
     ...mapActions([]),
+    downloadTable(){
+      let result_sorted = this.customSort(this.filteredResults, this.sortByTable, this.sortDescTable);
+      let text = this.json2csv(result_sorted, this.headerTable);
+      let filename = 'mutationTable.csv';
+      let element = document.createElement('a');
+      element.setAttribute('download', filename);
+      var data = new Blob([text]);
+      element.href = URL.createObjectURL(data);
+      document.body.appendChild(element);
+      element.click();
+      document.body.removeChild(element);
+    },
+    json2csv(input, selected_headers) {
+        var json = input;
+        var fields = [];
+        var fields2 = [];
+        selected_headers.forEach(function (el) {
+            fields.push(el.text.replaceAll("\n", ""));
+        });
+        selected_headers.forEach(function (el) {
+            fields2.push(el.value.replaceAll("\n", ""));
+        });
+        var csv = json.map(function (row) {
+            return fields2.map(function (fieldName) {
+                let string_val;
+                string_val = String(row[fieldName]);
+                string_val = string_val.replaceAll("\n", " ");
+                return JSON.stringify(string_val);
+            }).join(',')
+        });
+        csv.unshift(fields.join(','));
+        return csv.join('\r\n')
+    },
     customSort(items, index, isDesc) {
         if(index !== null && index !== undefined){
           let i = 0;
@@ -496,7 +541,7 @@ export default {
       let predefined_headers = [];
       if(this.withLineages) {
         predefined_headers = [
-          {text: 'Info', value: 'info', sortable: false, show: true, align: 'center', width: '3vh'},
+          //{text: 'Info', value: 'info', sortable: false, show: true, align: 'center', width: '3vh'},
           {text: 'Location', value: 'location', sortable: true, show: true, align: 'center', width: '13vh'},
           {text: 'Lineage', value: 'lineage', sortable: true, show: true, align: 'center', width: '13vh'},
           {text: 'Protein', value: 'protein', sortable: true, show: true, align: 'center', width: '13vh'},
@@ -506,7 +551,7 @@ export default {
       }
       else{
         predefined_headers = [
-          {text: 'Info', value: 'info', sortable: false, show: true, align: 'center', width: '3vh'},
+          //{text: 'Info', value: 'info', sortable: false, show: true, align: 'center', width: '3vh'},
           {text: 'Location', value: 'location', sortable: true, show: true, align: 'center', width: '13vh'},
           {text: 'Protein', value: 'protein', sortable: true, show: true, align: 'center', width: '13vh'},
           {text: 'Mut', value: 'mut', sortable: true, show: true, align: 'center', width: '13vh'},
@@ -655,14 +700,6 @@ export default {
     if(this.filteredResults.length > 0) {
       this.loadTables();
     }
-    if(this.withLineages){
-      let elem = document.getElementById(this.nameHeatmap + 'table');
-      elem['class'] = "data-table table_prov_reg withLineageClass";
-    }
-    else{
-      let elem = document.getElementById(this.nameHeatmap + 'table');
-      elem['class'] = "data-table table_prov_reg withoutLineageClass";
-    }
   },
   watch: {
     switch_alert(){
@@ -694,14 +731,14 @@ export default {
 
 <style scoped>
 
-tbody td:nth-of-type(7),td:nth-of-type(8),td:nth-of-type(9),
-      td:nth-of-type(13),td:nth-of-type(14),td:nth-of-type(15){
+tbody td:nth-of-type(6),td:nth-of-type(7),td:nth-of-type(8),
+      td:nth-of-type(12),td:nth-of-type(13),td:nth-of-type(14){
   background-color: rgba(0, 0, 0, .05);
   border-left: solid 1px grey;
 }
 
-tbody td:nth-of-type(10),td:nth-of-type(11),td:nth-of-type(12),
-      td:nth-of-type(16),td:nth-of-type(17),td:nth-of-type(18){
+tbody td:nth-of-type(9),td:nth-of-type(10),td:nth-of-type(11),
+      td:nth-of-type(15),td:nth-of-type(16),td:nth-of-type(17){
   background-color: rgba(0, 0, 0, .15);
   border-left: solid 1px grey;
 }

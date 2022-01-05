@@ -98,6 +98,7 @@
                                 </template>
                                 <v-date-picker
                                   v-model="selectedDate"
+                                  first-day-of-week="1"
                                   no-title
                                   scrollable
                                 >
@@ -215,7 +216,7 @@ export default {
       possibleSpecificGeo: [],
       selectedDate: null,
       selectedWeekNum: 4,
-      possibleWeekNum: [1,2,3,4],
+      possibleWeekNum: [2,3,4],
 
       selectedLineage: null,
       possibleLineage: [],
