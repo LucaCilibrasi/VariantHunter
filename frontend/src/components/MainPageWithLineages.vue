@@ -9,7 +9,7 @@
                    <v-card width="95%" :color="menu_color">
                      <v-layout row wrap justify-center style="padding: 30px;">
                        <v-flex class="no-horizontal-padding xs12 d-flex" style="justify-content: center; margin-top: 10px">
-                       <h2 style="color: white">SPECIFIC ANALYSIS:</h2>
+                       <h2 style="color: white">DEFINE ANALYSIS:</h2>
                       </v-flex>
                       <v-flex class="no-horizontal-padding xs12 md4 d-flex" style="justify-content: center;">
                         <v-layout row wrap justify-center>
@@ -51,7 +51,7 @@
                        <v-flex class="no-horizontal-padding xs12 md4 d-flex" style="justify-content: center;">
                          <v-layout row wrap justify-center>
                           <v-flex class="no-horizontal-padding xs12 d-flex" style="justify-content: center; padding-top: 0; padding-bottom: 0">
-                            <span style="color: white">Lineage:</span>
+                            <span style="color: white">Lineage (optional) :</span>
                           </v-flex>
                            <v-flex class="no-horizontal-padding xs12 d-flex" style="justify-content: center; padding-top: 0; padding-bottom: 0">
                               <v-autocomplete
@@ -145,7 +145,7 @@
                                class="white--text"
                                :disabled="selectedGeo !== 'world' && (selectedGeo === null || selectedSpecificGeo === null)"
                         >
-                            DO ANALYSIS
+                            START ANALYSIS
                         </v-btn>
                      </v-flex>
                      </v-layout>

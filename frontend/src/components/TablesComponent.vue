@@ -26,6 +26,7 @@
          <v-flex class="no-horizontal-padding xs6 md4 lg2 d-flex" style="justify-content: center;">
           <v-switch
             v-model="switch_alert"
+            label="Only Important Mutation"
           >
             <template v-slot:label>
               <span style="color: white">Only Important Mutation</span>
@@ -124,10 +125,10 @@
           </v-card-title>
 
           <v-card-text class="text-xs-center" style="padding: 20px">
-            <li><b>P value without mut: </b>  ... </li>
-            <li><b>P value with mut: </b>  ... </li>
-            <li><b>P value comparative: </b>  ... </li>
-            <li><b>Polyfit: </b>  ... </li>
+            <li><b>P value with mut: </b>  shows if the population «lineage + mutation» is growing differently compared to everything else. </li><br>
+            <li><b>P value without mut: </b>  shows if the population «lineage without mutation» is growing differently compared to everything else. </li><br>
+            <li><b>P value comparative: </b>  shows if the population «lineage + mutation» is growing differently compared to the population «lineage without mutation». </li><br>
+            <li><b>Significance: </b> shows how much important a mutation is. The indicator is calculated through a linear interpolation of the "P values comparative". The lower the value, the higher the significance.</li><br>
           </v-card-text>
 
         </v-card>
@@ -171,6 +172,13 @@
 
         </v-card>
       </v-dialog>
+
+    <v-flex class="no-horizontal-padding xs12 d-flex" style="justify-content: center" v-if="showCharts">
+        <h2 style="color: white; margin-top: 80px;">
+          HEATMAP (P-Values)
+        </h2>
+    </v-flex>
+
     <v-flex class="no-horizontal-padding xs12 d-flex" style="justify-content: center;" v-if="showCharts">
       <HeatmapMuts
         :nameHeatmap="nameHeatmap"
@@ -180,6 +188,12 @@
         :descColumn="sortDescTable"
         :withLineages="withLineages">
       </HeatmapMuts>
+    </v-flex>
+
+    <v-flex class="no-horizontal-padding xs12 d-flex" style="justify-content: center" v-if="showCharts">
+        <h2 style="color: white; margin-top: 80px;">
+          DIFFUSION BAR CHART
+        </h2>
     </v-flex>
 
     <v-flex class="no-horizontal-padding xs12 d-flex" style="justify-content: center;" v-if="showCharts">
@@ -282,7 +296,7 @@ export default {
         csv.unshift(fields.join(','));
         return csv.join('\r\n')
     },
-    customSort(items, index, isDesc) {
+        customSort(items, index, isDesc) {
         if(index !== null && index !== undefined){
           let i = 0;
           let len = index.length - 1;
@@ -290,7 +304,7 @@ export default {
           let desc = isDesc[i];
           if(idx !== null && idx !== undefined) {
             items.sort((a, b) => {
-              if (!idx.includes('p_value')) {
+              if (!idx.includes('p_value') && idx.includes('polyfit') && idx.includes('perc')) {
                 if (idx === 'mut') {
                   if (desc) {
                     let pos_a = a['muts'][0]['loc'];
@@ -349,7 +363,7 @@ export default {
                     }
                   }
                   if (b[idx] !== a[idx] || i >= len) {
-                    return b[idx] < a[idx] ? -1 : 1;
+                    return Number(b[idx]) < Number(a[idx]) ? -1 : 1;
                   }
                   else{
                       return this.singleCustomSort(a, b, i+1, len, index, isDesc);
@@ -372,7 +386,7 @@ export default {
                     }
                   }
                   if (b[idx] !== a[idx] || i >= len) {
-                    return b[idx] > a[idx] ? -1 : 1;
+                    return Number(b[idx]) > Number(a[idx]) ? -1 : 1;
                   }
                   else{
                     return this.singleCustomSort(a, b, i+1, len, index, isDesc);
@@ -387,7 +401,7 @@ export default {
     singleCustomSort(a, b, i, len, index, isDesc) {
       let idx = index[i];
       let desc = isDesc[i];
-      if (!idx.includes('p_value')) {
+      if (!idx.includes('p_value') && idx.includes('polyfit') && idx.includes('perc')) {
         if (idx === 'mut') {
           if (desc) {
             let pos_a = a['muts'][0]['loc'];
@@ -446,7 +460,7 @@ export default {
             }
           }
           if (b[idx] !== a[idx] || i >= len) {
-            return b[idx] < a[idx] ? -1 : 1;
+            return Number(b[idx]) < Number(a[idx]) ? -1 : 1;
           }
           else{
               return this.singleCustomSort(a, b, i+1, len, index, isDesc);
@@ -469,7 +483,7 @@ export default {
             }
           }
           if (b[idx] !== a[idx] || i >= len) {
-            return b[idx] > a[idx] ? -1 : 1;
+            return Number(b[idx]) > Number(a[idx]) ? -1 : 1;
           }
           else{
             return this.singleCustomSort(a, b, i+1, len, index, isDesc);
@@ -546,7 +560,7 @@ export default {
           {text: 'Lineage', value: 'lineage', sortable: true, show: true, align: 'center', width: '13vh'},
           {text: 'Protein', value: 'protein', sortable: true, show: true, align: 'center', width: '13vh'},
           {text: 'Mut', value: 'mut', sortable: true, show: true, align: 'center', width: '13vh'},
-          {text: 'Polyfit', value: 'polyfit', sortable: true, show: true, align: 'center', width: '13vh'},
+          {text: 'Significance', value: 'polyfit', sortable: true, show: true, align: 'center', width: '13vh'},
         ]
       }
       else{
@@ -555,7 +569,7 @@ export default {
           {text: 'Location', value: 'location', sortable: true, show: true, align: 'center', width: '13vh'},
           {text: 'Protein', value: 'protein', sortable: true, show: true, align: 'center', width: '13vh'},
           {text: 'Mut', value: 'mut', sortable: true, show: true, align: 'center', width: '13vh'},
-          {text: 'Polyfit', value: 'polyfit', sortable: true, show: true, align: 'center', width: '13vh'},
+          {text: 'Significance', value: 'polyfit', sortable: true, show: true, align: 'center', width: '13vh'},
         ]
       }
 

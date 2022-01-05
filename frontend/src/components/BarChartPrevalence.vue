@@ -140,7 +140,7 @@ export default {
           let desc = isDesc[i];
           if(idx !== null && idx !== undefined) {
             items.sort((a, b) => {
-              if (!idx.includes('p_value')) {
+              if (!idx.includes('p_value') && idx.includes('polyfit') && idx.includes('perc')) {
                 if (idx === 'mut') {
                   if (desc) {
                     let pos_a = a['muts'][0]['loc'];
@@ -199,7 +199,7 @@ export default {
                     }
                   }
                   if (b[idx] !== a[idx] || i >= len) {
-                    return b[idx] < a[idx] ? -1 : 1;
+                    return Number(b[idx]) < Number(a[idx]) ? -1 : 1;
                   }
                   else{
                       return this.singleCustomSort(a, b, i+1, len, index, isDesc);
@@ -222,7 +222,7 @@ export default {
                     }
                   }
                   if (b[idx] !== a[idx] || i >= len) {
-                    return b[idx] > a[idx] ? -1 : 1;
+                    return Number(b[idx]) > Number(a[idx]) ? -1 : 1;
                   }
                   else{
                     return this.singleCustomSort(a, b, i+1, len, index, isDesc);
@@ -240,7 +240,7 @@ export default {
     singleCustomSort(a, b, i, len, index, isDesc) {
       let idx = index[i];
       let desc = isDesc[i];
-      if (!idx.includes('p_value')) {
+      if (!idx.includes('p_value') && idx.includes('polyfit') && idx.includes('perc')) {
         if (idx === 'mut') {
           if (desc) {
             let pos_a = a['muts'][0]['loc'];
@@ -299,7 +299,7 @@ export default {
             }
           }
           if (b[idx] !== a[idx] || i >= len) {
-            return b[idx] < a[idx] ? -1 : 1;
+            return Number(b[idx]) < Number(a[idx]) ? -1 : 1;
           }
           else{
               return this.singleCustomSort(a, b, i+1, len, index, isDesc);
@@ -322,7 +322,7 @@ export default {
             }
           }
           if (b[idx] !== a[idx] || i >= len) {
-            return b[idx] > a[idx] ? -1 : 1;
+            return Number(b[idx]) > Number(a[idx]) ? -1 : 1;
           }
           else{
             return this.singleCustomSort(a, b, i+1, len, index, isDesc);

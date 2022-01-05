@@ -1,7 +1,7 @@
 <template>
   <div>
     <v-btn @click="startAnalyseSelectedMutations()" color="primary" :disabled="selectedMuts.length === 0">
-      ANALYSE SELECTED MUTATIONS
+      ANALYSE SELECTED MUTATIONS ({{this.selectedMuts.length}})
     </v-btn>
 
 

@@ -1,21 +1,21 @@
 <template>
   <v-container fluid grid-list-xl style="justify-content: center; padding: 0;">
     <v-tabs v-model="selectedTabAnalyze"
-              :background-color="menu_color"
+              background-color="#c1121f"
               dark
               show-arrows
-              :slider-color="background_card_color"
+              :slider-color="toolbar_color"
               slider-size="6"
               class="containTabs"
               height="60">
 
 
-        <v-tab id="tab0" style="border-right: black solid 1px; width: 20%">
-           WITH LINEAGES
+        <v-tab id="tab0" style="border-right: black solid 1px; width: 30%; border-bottom: solid black 1px">
+           VARIANCE IN LOCATION AND LINEAGE
         </v-tab>
 
-        <v-tab id="tab1" style="border-right: black solid 1px; width: 20%">
-           WITHOUT
+        <v-tab id="tab1" style="border-right: black solid 1px; width: 30%; border-bottom: solid black 1px">
+           MUTATIONS’ PRESENCE IN LOCATION
         </v-tab>
 
         <v-tab-item class="lol">
