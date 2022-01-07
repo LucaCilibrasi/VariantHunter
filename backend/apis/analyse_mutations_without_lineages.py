@@ -124,8 +124,8 @@ def get_all_mutation_not_characteristics(date, granularity, location):
     filtered_results = []
     for x in results:
         mutation = f"{x['_id']['pro']}_{x['_id']['org']}{x['_id']['loc']}{x['_id']['alt']}"
-        # if (x['count']/denominator) > 0.01:     # mutation not in all_important_mutation_dict[x['_id']['lin']] and
-        filtered_results.append(x['_id'])
+        if (x['count']/denominator) > 0.01:     # mutation not in all_important_mutation_dict[x['_id']['lin']] and
+            filtered_results.append(x['_id'])
 
     result_array = []
     for x in filtered_results:
