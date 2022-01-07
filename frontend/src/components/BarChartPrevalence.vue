@@ -82,7 +82,7 @@ export default {
             position: 'left',
             offset: 10,
             min: 0,
-            max: 1,
+            max: 100,
             axisLine: {
               show: true,
               lineStyle: {
@@ -498,7 +498,7 @@ export default {
           let total_seq = objNumSeqDate[arrX[k]];
           // eslint-disable-next-line no-prototype-builtins
           if(met[j].hasOwnProperty(key1)){
-            let value = met[j][key1] / (met[j][key1] + met[j][key2]);
+            let value = (met[j][key1] / (met[j][key1] + met[j][key2])) * 100;
             let obj = {value: value, name: arrX[k], total: total_seq}
             singleArrY.push(obj);
           }

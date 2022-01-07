@@ -187,7 +187,7 @@
         :singleInfo= "singleInfo"
         :sortColumn="sortByTable"
         :descColumn="sortDescTable"
-        :withLineages="withLineages">
+        :withLineages="false">
       </HeatmapMuts>
     </v-flex>
 
@@ -587,9 +587,9 @@ export default {
       // let array_possible_header = ['diff_perc', 'perc_this_week', 'perc_prev_week', 'count_this_week',
       //   'count_prev_week']
       let array_possible_header = [
-          'p_value_comparative_mut',
-          'p_value_with_mut',
-        'p_value_without_mut',
+        //   'p_value_comparative_mut',
+        //   'p_value_with_mut',
+        // 'p_value_without_mut',
         // 'diff_perc_without_mut',
         //1'perc_without_mut_this_week',
         //1'perc_without_mut_prev_week',
@@ -755,21 +755,21 @@ export default {
 
 <style scoped>
 
-.v-data-table > .v-data-table__wrapper > table > tbody > tr > td:nth-of-type(5),td:nth-of-type(6), td:nth-of-type(7),td:nth-of-type(8),td:nth-of-type(9){
-  background-color: rgba(0, 0, 0, .05) !important;
-  border-left: solid 1px grey !important;
-}
+/*.v-data-table > .v-data-table__wrapper > table > tbody > tr > td:nth-of-type(5),td:nth-of-type(6), td:nth-of-type(7),td:nth-of-type(8),td:nth-of-type(9){*/
+/*  background-color: rgba(0, 0, 0, .05) !important;*/
+/*  border-left: solid 1px grey !important;*/
+/*}*/
 
-.v-data-table > .v-data-table__wrapper > table > tbody > tr >  td:nth-of-type(10),td:nth-of-type(11),td:nth-of-type(12),
-      td:nth-of-type(16),td:nth-of-type(17),td:nth-of-type(18){
-  background-color: rgba(0, 0, 0, .05) !important;
-  border-left: solid 1px grey !important;
-}
+/*.v-data-table > .v-data-table__wrapper > table > tbody > tr >  td:nth-of-type(10),td:nth-of-type(11),td:nth-of-type(12),*/
+/*      td:nth-of-type(16),td:nth-of-type(17),td:nth-of-type(18){*/
+/*  background-color: rgba(0, 0, 0, .05) !important;*/
+/*  border-left: solid 1px grey !important;*/
+/*}*/
 
-.v-data-table > .v-data-table__wrapper > table > tbody > tr >  td:nth-of-type(13),td:nth-of-type(14),td:nth-of-type(15),
-      td:nth-of-type(19),td:nth-of-type(20),td:nth-of-type(21){
-  background-color: rgba(0, 0, 0, .15) !important;
-  border-left: solid 1px grey !important;
-}
+/*.v-data-table > .v-data-table__wrapper > table > tbody > tr >  td:nth-of-type(13),td:nth-of-type(14),td:nth-of-type(15),*/
+/*      td:nth-of-type(19),td:nth-of-type(20),td:nth-of-type(21){*/
+/*  background-color: rgba(0, 0, 0, .15) !important;*/
+/*  border-left: solid 1px grey !important;*/
+/*}*/
 
 </style>
