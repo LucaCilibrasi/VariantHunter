@@ -104,7 +104,7 @@ export default {
           let desc = isDesc[i];
           if(idx !== null && idx !== undefined) {
             items.sort((a, b) => {
-              if (!idx.includes('p_value') && idx.includes('polyfit') && idx.includes('perc')) {
+              if (!idx.includes('p_value') && !idx.includes('polyfit')) {
                 if (idx === 'mut') {
                   if (desc) {
                     let pos_a = a['muts'][0]['loc'];
@@ -120,6 +120,57 @@ export default {
                     let pos_b = b['muts'][0]['loc'];
                     if (pos_a !== pos_b || i >= len) {
                       return pos_b > pos_a ? -1 : 1;
+                    }
+                    else{
+                      return this.singleCustomSort(a, b, i+1, len, index, isDesc);
+                    }
+                  }
+                }
+                else if(idx.includes('perc')){
+                  let date = idx.replace('perc_with_absolute_number','');
+                  let realKey = 'perc_with_mut_this_week' + date;
+                  if (desc) {
+                    if(a[idx] === null || a[idx] === undefined){
+                      if (b[idx] !== a[idx] || i >= len) {
+                        return 1;
+                      }
+                      else{
+                        return this.singleCustomSort(a, b, i+1, len, index, isDesc);
+                      }
+                    }
+                    if(b[idx] === null || b[idx] === undefined){
+                      if (b[idx] !== a[idx] || i >= len) {
+                        return -1;
+                      }
+                      else{
+                        return this.singleCustomSort(a, b, i+1, len, index, isDesc);
+                      }
+                    }
+                    if (b[realKey] !== a[realKey] || i >= len) {
+                      return Number(b[realKey]) < Number(a[realKey]) ? -1 : 1;
+                    }
+                    else{
+                      return this.singleCustomSort(a, b, i+1, len, index, isDesc);
+                    }
+                  } else {
+                    if(a[idx] === null || a[idx] === undefined){
+                      if (b[idx] !== a[idx] || i >= len) {
+                        return 1;
+                      }
+                      else{
+                        return this.singleCustomSort(a, b, i+1, len, index, isDesc);
+                      }
+                    }
+                    if(b[idx] === null || b[idx] === undefined){
+                      if (b[idx] !== a[idx] || i >= len) {
+                        return -1;
+                      }
+                      else{
+                        return this.singleCustomSort(a, b, i+1, len, index, isDesc);
+                      }
+                    }
+                    if (b[realKey] !== a[realKey] || i >= len) {
+                      return Number(b[realKey]) > Number(a[realKey]) ? -1 : 1;
                     }
                     else{
                       return this.singleCustomSort(a, b, i+1, len, index, isDesc);
@@ -204,7 +255,7 @@ export default {
     singleCustomSort(a, b, i, len, index, isDesc) {
       let idx = index[i];
       let desc = isDesc[i];
-      if (!idx.includes('p_value') && idx.includes('polyfit') && idx.includes('perc')) {
+      if (!idx.includes('p_value') && !idx.includes('polyfit')) {
         if (idx === 'mut') {
           if (desc) {
             let pos_a = a['muts'][0]['loc'];
@@ -220,6 +271,57 @@ export default {
             let pos_b = b['muts'][0]['loc'];
             if (pos_a !== pos_b || i >= len) {
               return pos_b > pos_a ? -1 : 1;
+            }
+            else{
+              return this.singleCustomSort(a, b, i+1, len, index, isDesc);
+            }
+          }
+        }
+        else if(idx.includes('perc')){
+          let date = idx.replace('perc_with_absolute_number','');
+          let realKey = 'perc_with_mut_this_week' + date;
+          if (desc) {
+            if(a[idx] === null || a[idx] === undefined){
+              if (b[idx] !== a[idx] || i >= len) {
+                return 1;
+              }
+              else{
+                return this.singleCustomSort(a, b, i+1, len, index, isDesc);
+              }
+            }
+            if(b[idx] === null || b[idx] === undefined){
+              if (b[idx] !== a[idx] || i >= len) {
+                return -1;
+              }
+              else{
+                return this.singleCustomSort(a, b, i+1, len, index, isDesc);
+              }
+            }
+            if (b[realKey] !== a[realKey] || i >= len) {
+              return Number(b[realKey]) < Number(a[realKey]) ? -1 : 1;
+            }
+            else{
+              return this.singleCustomSort(a, b, i+1, len, index, isDesc);
+            }
+          } else {
+            if(a[idx] === null || a[idx] === undefined){
+              if (b[idx] !== a[idx] || i >= len) {
+                return 1;
+              }
+              else{
+                return this.singleCustomSort(a, b, i+1, len, index, isDesc);
+              }
+            }
+            if(b[idx] === null || b[idx] === undefined){
+              if (b[idx] !== a[idx] || i >= len) {
+                return -1;
+              }
+              else{
+                return this.singleCustomSort(a, b, i+1, len, index, isDesc);
+              }
+            }
+            if (b[realKey] !== a[realKey] || i >= len) {
+              return Number(b[realKey]) > Number(a[realKey]) ? -1 : 1;
             }
             else{
               return this.singleCustomSort(a, b, i+1, len, index, isDesc);

@@ -44,6 +44,25 @@ export default {
         },
         tooltip: {
             trigger: 'item',
+            formatter: function (params) {
+              let icon0 = `<span data-tooltip="minimum" style="border-left: 2px solid #fff;display: inline-block;height: 10px;margin-right: 5px;width: 10px;">
+                              <span style="background-color:${params.color}; border-radius: 100%; display: block;height: 10px;width: 10px;">
+                              </span>
+                            </span>`;
+              let lineage =  `<span style="text-align: center; padding: 0; margin: 0;"><b>${params.seriesName} // ${params.name}</b></span>`
+
+              let form ;
+              if(params.seriesType === 'bar'){
+                form = `<span><b>percentage:</b> ${Number(params.data['value']).toPrecision(3)}</span> <br />
+                        <span><b># sequences:</b> ${params.data['total']}</span><br />`
+              }
+              else{
+                form = `<span><b># sequences:</b> ${params.data}</span><br />`
+              }
+
+              return `${icon0} ${lineage} <br /><br />
+                      ${form}`;
+            },
         },
         // legend: {
         //   data: [],
@@ -140,7 +159,7 @@ export default {
           let desc = isDesc[i];
           if(idx !== null && idx !== undefined) {
             items.sort((a, b) => {
-              if (!idx.includes('p_value') && idx.includes('polyfit') && idx.includes('perc')) {
+              if (!idx.includes('p_value') && !idx.includes('polyfit')) {
                 if (idx === 'mut') {
                   if (desc) {
                     let pos_a = a['muts'][0]['loc'];
@@ -156,6 +175,57 @@ export default {
                     let pos_b = b['muts'][0]['loc'];
                     if (pos_a !== pos_b || i >= len) {
                       return pos_b > pos_a ? -1 : 1;
+                    }
+                    else{
+                      return this.singleCustomSort(a, b, i+1, len, index, isDesc);
+                    }
+                  }
+                }
+                else if(idx.includes('perc')){
+                  let date = idx.replace('perc_with_absolute_number','');
+                  let realKey = 'perc_with_mut_this_week' + date;
+                  if (desc) {
+                    if(a[idx] === null || a[idx] === undefined){
+                      if (b[idx] !== a[idx] || i >= len) {
+                        return 1;
+                      }
+                      else{
+                        return this.singleCustomSort(a, b, i+1, len, index, isDesc);
+                      }
+                    }
+                    if(b[idx] === null || b[idx] === undefined){
+                      if (b[idx] !== a[idx] || i >= len) {
+                        return -1;
+                      }
+                      else{
+                        return this.singleCustomSort(a, b, i+1, len, index, isDesc);
+                      }
+                    }
+                    if (b[realKey] !== a[realKey] || i >= len) {
+                      return Number(b[realKey]) < Number(a[realKey]) ? -1 : 1;
+                    }
+                    else{
+                      return this.singleCustomSort(a, b, i+1, len, index, isDesc);
+                    }
+                  } else {
+                    if(a[idx] === null || a[idx] === undefined){
+                      if (b[idx] !== a[idx] || i >= len) {
+                        return 1;
+                      }
+                      else{
+                        return this.singleCustomSort(a, b, i+1, len, index, isDesc);
+                      }
+                    }
+                    if(b[idx] === null || b[idx] === undefined){
+                      if (b[idx] !== a[idx] || i >= len) {
+                        return -1;
+                      }
+                      else{
+                        return this.singleCustomSort(a, b, i+1, len, index, isDesc);
+                      }
+                    }
+                    if (b[realKey] !== a[realKey] || i >= len) {
+                      return Number(b[realKey]) > Number(a[realKey]) ? -1 : 1;
                     }
                     else{
                       return this.singleCustomSort(a, b, i+1, len, index, isDesc);
@@ -240,7 +310,7 @@ export default {
     singleCustomSort(a, b, i, len, index, isDesc) {
       let idx = index[i];
       let desc = isDesc[i];
-      if (!idx.includes('p_value') && idx.includes('polyfit') && idx.includes('perc')) {
+      if (!idx.includes('p_value') && !idx.includes('polyfit')) {
         if (idx === 'mut') {
           if (desc) {
             let pos_a = a['muts'][0]['loc'];
@@ -256,6 +326,57 @@ export default {
             let pos_b = b['muts'][0]['loc'];
             if (pos_a !== pos_b || i >= len) {
               return pos_b > pos_a ? -1 : 1;
+            }
+            else{
+              return this.singleCustomSort(a, b, i+1, len, index, isDesc);
+            }
+          }
+        }
+        else if(idx.includes('perc')){
+          let date = idx.replace('perc_with_absolute_number','');
+          let realKey = 'perc_with_mut_this_week' + date;
+          if (desc) {
+            if(a[idx] === null || a[idx] === undefined){
+              if (b[idx] !== a[idx] || i >= len) {
+                return 1;
+              }
+              else{
+                return this.singleCustomSort(a, b, i+1, len, index, isDesc);
+              }
+            }
+            if(b[idx] === null || b[idx] === undefined){
+              if (b[idx] !== a[idx] || i >= len) {
+                return -1;
+              }
+              else{
+                return this.singleCustomSort(a, b, i+1, len, index, isDesc);
+              }
+            }
+            if (b[realKey] !== a[realKey] || i >= len) {
+              return Number(b[realKey]) < Number(a[realKey]) ? -1 : 1;
+            }
+            else{
+              return this.singleCustomSort(a, b, i+1, len, index, isDesc);
+            }
+          } else {
+            if(a[idx] === null || a[idx] === undefined){
+              if (b[idx] !== a[idx] || i >= len) {
+                return 1;
+              }
+              else{
+                return this.singleCustomSort(a, b, i+1, len, index, isDesc);
+              }
+            }
+            if(b[idx] === null || b[idx] === undefined){
+              if (b[idx] !== a[idx] || i >= len) {
+                return -1;
+              }
+              else{
+                return this.singleCustomSort(a, b, i+1, len, index, isDesc);
+              }
+            }
+            if (b[realKey] !== a[realKey] || i >= len) {
+              return Number(b[realKey]) > Number(a[realKey]) ? -1 : 1;
             }
             else{
               return this.singleCustomSort(a, b, i+1, len, index, isDesc);
@@ -355,22 +476,35 @@ export default {
       // this.barChart2.xAxis.data = arrX;
 
       let objNumSeqDate = {};
+      for(let j=0; j<met.length; j++) {
+        for (let k = 0; k < arrX.length; k++) {
+          let key1 = 'count_with_mut_this_week_' + arrX[k];
+          let key2 = 'count_without_mut_this_week_' + arrX[k];
+          // eslint-disable-next-line no-prototype-builtins
+          if (met[j].hasOwnProperty(key1)) {
+            // eslint-disable-next-line no-prototype-builtins
+            if (!objNumSeqDate.hasOwnProperty(arrX[k])) {
+              objNumSeqDate[arrX[k]] = (met[j][key1] + met[j][key2]);
+            }
+          }
+        }
+      }
+
       for(let j=0; j<met.length; j++){
         let singleArrY = [];
         for(let k=0; k<arrX.length; k++){
           let key1 = 'count_with_mut_this_week_' + arrX[k];
           let key2 = 'count_without_mut_this_week_' + arrX[k];
+          let total_seq = objNumSeqDate[arrX[k]];
           // eslint-disable-next-line no-prototype-builtins
           if(met[j].hasOwnProperty(key1)){
-            // eslint-disable-next-line no-prototype-builtins
-            if(!objNumSeqDate.hasOwnProperty(arrX[k])){
-              objNumSeqDate[arrX[k]] = (met[j][key1] + met[j][key2]);
-            }
             let value = met[j][key1] / (met[j][key1] + met[j][key2]);
-            singleArrY.push(value);
+            let obj = {value: value, name: arrX[k], total: total_seq}
+            singleArrY.push(obj);
           }
           else{
-            singleArrY.push(0);
+            let obj = {value: 0, name: arrX[k], total: total_seq}
+            singleArrY.push(obj);
           }
         }
         let name;

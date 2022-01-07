@@ -4,7 +4,7 @@ import re
 import timeit
 
 import numpy as np
-from scipy.stats import fisher_exact
+from scipy.stats import fisher_exact, chi2_contingency, kstest
 from threading import Timer
 from datetime import datetime, timedelta
 from flask_restplus import Namespace, Resource
@@ -124,8 +124,8 @@ def get_all_mutation_not_characteristics(date, granularity, location):
     filtered_results = []
     for x in results:
         mutation = f"{x['_id']['pro']}_{x['_id']['org']}{x['_id']['loc']}{x['_id']['alt']}"
-        if (x['count']/denominator) > 0.01:     # mutation not in all_important_mutation_dict[x['_id']['lin']] and
-            filtered_results.append(x['_id'])
+        # if (x['count']/denominator) > 0.01:     # mutation not in all_important_mutation_dict[x['_id']['lin']] and
+        filtered_results.append(x['_id'])
 
     result_array = []
     for x in filtered_results:
@@ -150,7 +150,7 @@ def get_all_mutation_for_each_geo_previous_week(date, granularity, real_location
     mut_dict = all_mutations_dict
     for mut in mut_dict:
         # FILTER ON SPIKE
-        if '*' not in mut and '_-' not in mut:  #  and 'Spike' in mut:
+        if '*' not in mut and '_-' not in mut:  # and 'Spike' in mut:
 
             print("mut analysis ---> ", date, real_location, mut)
 
@@ -233,12 +233,16 @@ def get_all_mutation_for_each_geo_previous_week(date, granularity, real_location
 
                 if denominator_prev_week_with_mut != 0:
                     perc_with_mut_prev_week = (
-                                                      results_with_mut_prev_week / denominator_prev_week_with_mut) * 100
+                                                      results_with_mut_prev_week /
+                                                      (results_with_mut_prev_week + results_without_mut_prev_week)) \
+                                              * 100
                 else:
                     perc_with_mut_prev_week = 0
                 if denominator_this_week_with_mut != 0:
                     perc_with_mut_this_week = (
-                                                      results_with_mut_this_week / denominator_this_week_with_mut) * 100
+                                                      results_with_mut_this_week /
+                                                      (results_with_mut_this_week + results_without_mut_this_week)) \
+                                              * 100
                 else:
                     perc_with_mut_this_week = 0
                 diff_perc_with_mut = perc_with_mut_this_week - perc_with_mut_prev_week
@@ -273,6 +277,10 @@ def get_all_mutation_for_each_geo_previous_week(date, granularity, real_location
                     [results_without_mut_prev_week, results_without_mut_this_week]]
                 odds_comparative_mut, p_comparative_mut = fisher_exact(table_comparative_mutation)
 
+                to_float = perc_with_mut_this_week
+                format_float = "{:.2f}".format(to_float)
+                perc_with_absolute_number = format_float + f'  ({results_with_mut_this_week})'
+
                 full_object = {f'{granularity}': location,
                                'mut': mut,
                                'lineage': None,
@@ -296,7 +304,8 @@ def get_all_mutation_for_each_geo_previous_week(date, granularity, real_location
                                'p_value_comparative_mut': p_comparative_mut,
                                'analysis_date': date.strftime("%Y-%m-%d"),
                                'granularity': granularity,
-                               'location': location
+                               'location': location,
+                               'perc_with_absolute_number': perc_with_absolute_number,
                                }
 
                 array_results.append(full_object)
@@ -343,7 +352,8 @@ def create_unique_array_results(array_results, today_date, array_date, function)
                         key == 'perc_with_mut_this_week' or \
                         key == 'perc_with_mut_prev_week' or \
                         key == 'count_with_mut_this_week' or \
-                        key == 'count_with_mut_prev_week':
+                        key == 'count_with_mut_prev_week' or \
+                        key == 'perc_with_absolute_number':
                     new_key = key + '_' + analysis_date
                     single_obj[new_key] = single_res[key]
                 elif key == 'total_seq_pop_this_week_with_mut':
@@ -395,7 +405,8 @@ def create_unique_array_results(array_results, today_date, array_date, function)
                         key == 'perc_with_mut_this_week' or \
                         key == 'perc_with_mut_prev_week' or \
                         key == 'count_with_mut_this_week' or \
-                        key == 'count_with_mut_prev_week':
+                        key == 'count_with_mut_prev_week' or \
+                        key == 'perc_with_absolute_number':
                     new_key = key + '_' + analysis_date
                     result_dict[id_single_obj][new_key] = single_res[key]
                 elif key == 'total_seq_pop_this_week_with_mut':
@@ -430,6 +441,15 @@ def create_unique_array_results(array_results, today_date, array_date, function)
             array_x_polyfit = []
             array_y_polyfit = []
             count = 0
+
+            table_with_mutation = [[], []]
+            table_without_mutation = [[], []]
+            table_comparative_mutation = [[], []]
+
+            table_with_mut_chi2 = []
+            table_without_mutation_chi2 = []
+            table_comparative_mutation_chi2 = []
+
             for single_date in array_date:
                 array_x_polyfit.append(float(i))
                 i = i + 1
@@ -439,9 +459,143 @@ def create_unique_array_results(array_results, today_date, array_date, function)
                     array_y_polyfit.append(json_obj[key])
                 else:
                     array_y_polyfit.append(0.0)
+
+                if i == 1:
+                    key_count_with_mut_prev_week = 'count_with_mut_prev_week' + '_' + single_date
+                    key_denom_with_mut_prev_week = 'total_seq_pop_prev_week' + '_' + single_date
+                    key_count_without_mut_prev_week = 'count_without_mut_prev_week' + '_' + single_date
+                    key_denom_without_mut_prev_week = 'total_seq_pop_prev_week' + '_' + single_date
+
+                    arr_chi2 = []
+                    if key_count_with_mut_prev_week in json_obj:
+                        table_with_mutation[0].append(json_obj[key_count_with_mut_prev_week])
+                        arr_chi2.append(json_obj[key_count_with_mut_prev_week])
+                    # else:
+                    #     table_with_mutation[0].append(0)
+                        # arr_chi2.append(0)
+                    if key_denom_with_mut_prev_week in json_obj:
+                        table_with_mutation[1].append(json_obj[key_denom_with_mut_prev_week])
+                        arr_chi2.append(json_obj[key_denom_with_mut_prev_week])
+                    # else:
+                    #     table_with_mutation[1].append(0)
+                        # arr_chi2.append(0)
+                    if len(arr_chi2) > 0:
+                        table_with_mut_chi2.append(arr_chi2)
+
+                    arr_chi2 = []
+                    if key_count_without_mut_prev_week in json_obj:
+                        table_without_mutation[0].append(json_obj[key_count_without_mut_prev_week])
+                        arr_chi2.append(json_obj[key_count_without_mut_prev_week])
+                    # else:
+                    #     table_without_mutation[0].append(0)
+                        # arr_chi2.append(0)
+                    if key_denom_without_mut_prev_week in json_obj:
+                        table_without_mutation[1].append(json_obj[key_denom_without_mut_prev_week])
+                        arr_chi2.append(json_obj[key_denom_without_mut_prev_week])
+                    # else:
+                    #     table_without_mutation[1].append(0)
+                        # arr_chi2.append(0)
+                    if len(arr_chi2) > 0:
+                        table_without_mutation_chi2.append(arr_chi2)
+
+                    arr_chi2 = []
+                    if key_count_with_mut_prev_week in json_obj:
+                        table_comparative_mutation[0].append(json_obj[key_count_with_mut_prev_week])
+                        arr_chi2.append(json_obj[key_count_with_mut_prev_week])
+                    # else:
+                    #     table_without_mutation[0].append(0)
+                        # arr_chi2.append(0)
+                    if key_count_without_mut_prev_week in json_obj:
+                        table_comparative_mutation[1].append(json_obj[key_count_without_mut_prev_week])
+                        arr_chi2.append(json_obj[key_count_without_mut_prev_week])
+                    # else:
+                    #     table_comparative_mutation[1].append(0)
+                        # arr_chi2.append(0)
+                    if len(arr_chi2) > 0:
+                        table_comparative_mutation_chi2.append(arr_chi2)
+
+                key_count_with_mut_this_week = 'count_with_mut_this_week' + '_' + single_date
+                key_denom_with_mut_this_week = 'total_seq_pop_this_week' + '_' + single_date
+                key_count_without_mut_this_week = 'count_without_mut_this_week' + '_' + single_date
+                key_denom_without_mut_this_week = 'total_seq_pop_this_week' + '_' + single_date
+
+                arr_chi2 = []
+                if key_count_with_mut_this_week in json_obj:
+                    table_with_mutation[0].append(json_obj[key_count_with_mut_this_week])
+                    arr_chi2.append(json_obj[key_count_with_mut_this_week])
+                # else:
+                #     table_with_mutation[0].append(0)
+                    # arr_chi2.append(0)
+                if key_denom_with_mut_this_week in json_obj:
+                    table_with_mutation[1].append(json_obj[key_denom_with_mut_this_week])
+                    arr_chi2.append(json_obj[key_denom_with_mut_this_week])
+                # else:
+                #     table_with_mutation[1].append(0)
+                    # arr_chi2.append(0)
+                if len(arr_chi2) > 0:
+                    table_with_mut_chi2.append(arr_chi2)
+
+                arr_chi2 = []
+                if key_count_without_mut_this_week in json_obj:
+                    table_without_mutation[0].append(json_obj[key_count_without_mut_this_week])
+                    arr_chi2.append(json_obj[key_count_without_mut_this_week])
+                # else:
+                #     table_without_mutation[0].append(0)
+                    # arr_chi2.append(0)
+                if key_denom_without_mut_this_week in json_obj:
+                    table_without_mutation[1].append(json_obj[key_denom_without_mut_this_week])
+                    arr_chi2.append(json_obj[key_denom_without_mut_this_week])
+                # else:
+                #     table_without_mutation[1].append(0)
+                    # arr_chi2.append(0)
+                if len(arr_chi2) > 0:
+                    table_without_mutation_chi2.append(arr_chi2)
+
+                arr_chi2 = []
+                if key_count_with_mut_this_week in json_obj:
+                    table_comparative_mutation[0].append(json_obj[key_count_with_mut_this_week])
+                    arr_chi2.append(json_obj[key_count_with_mut_this_week])
+                # else:
+                #     table_comparative_mutation[0].append(0)
+                    # arr_chi2.append(0)
+                if key_count_without_mut_this_week in json_obj:
+                    table_comparative_mutation[1].append(json_obj[key_count_without_mut_this_week])
+                    arr_chi2.append(json_obj[key_count_without_mut_this_week])
+                # else:
+                #     table_comparative_mutation[1].append(0)
+                    # arr_chi2.append(0)
+                if len(arr_chi2) > 0:
+                    table_comparative_mutation_chi2.append(arr_chi2)
+
+            # odds_with_mut, p_with_mut = fisher_exact(table_with_mutation)
+            # odds_without_mut, p_without_mut = fisher_exact(table_without_mutation)
+            # odds_comparative_mut, p_comparative_mut = fisher_exact(table_comparative_mutation)
+
+            # print("QUI1", table_with_mut_chi2)
+            # print("QUI2", table_without_mutation_chi2)
+            # print("QUI3", table_comparative_mutation_chi2)
+
+            min_count = (len(array_date) / 2) + 1
+            if count >= min_count:
+                stat, p_with_mut, dof, expected = chi2_contingency(table_with_mut_chi2)
+                stat, p_without_mut, dof, expected = chi2_contingency(table_without_mutation_chi2)
+                stat, p_comparative_mut, dof, expected = chi2_contingency(table_comparative_mutation_chi2)
+
+                # stat1, p_with_mut = kstest(table_with_mutation[0], table_with_mutation[1])
+                # stat2, p_without_mut = kstest(table_without_mutation[0], table_without_mutation[1])
+                # stat3, p_comparative_mut = kstest(table_comparative_mutation[0], table_comparative_mutation_chi2[1])
+
+                json_obj['p_value_with_mut_total'] = p_with_mut
+                json_obj['p_value_without_mut_total'] = p_without_mut
+                json_obj['p_value_comparative_mut_total'] = p_comparative_mut
+
             print("qui", array_x_polyfit, array_y_polyfit)
             z = np.polyfit(array_x_polyfit, array_y_polyfit, 1)
-            json_obj['polyfit'] = z[0]
+            json_obj['polyfit_slope'] = z[0]
+
+            to_float = z[1]
+            format_float = "{:.2f}".format(to_float)
+            json_obj['polyfit_intercept'] = format_float
 
             min_count = (len(array_date) / 2) + 1
             if count < min_count:

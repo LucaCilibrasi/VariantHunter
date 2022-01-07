@@ -57,6 +57,12 @@
                   style="padding: 0; width: 100%">
                 </BarChartPrevalence>
               </v-flex>
+
+              <v-flex class="no-horizontal-padding xs12 md12 lg12 d-flex" style="justify-content: center; margin-bottom: 50px">
+                <v-btn color="primary" @click="downloadTableAnalyzedPeriods()">
+                  DOWNLOAD TABLE ANALYZED PERIODS ({{minDate}} // {{maxDate}})
+                </v-btn>
+              </v-flex>
             </v-layout>
           </v-card-text>
 
@@ -102,6 +108,10 @@ export default {
       listOfPeriods: {},
 
       emptyArray: [],
+
+      maxDate: null,
+      minDate: null,
+      totalNumOfWeek: null,
     }
   },
   computed: {
@@ -167,6 +177,7 @@ export default {
             });
       }
       this.checkNextAndPreviousDate();
+      this.calculateMinMaxDate();
     },
     prepareData(){
       this.overlay = false;
@@ -187,7 +198,131 @@ export default {
         let singleMut = this.selectedMuts[j]['protein'] + '_' + this.selectedMuts[j]['mut'];
         this.listOfMutation.push(singleMut);
       }
+      this.maxDate = null;
+      this.minDate = null;
+      this.totalNumOfWeek = this.weekNum;
+      this.calculateMinMaxDate();
       this.checkNextAndPreviousDate();
+    },
+    calculateMinMaxDate(){
+      if(this.maxDate === null){
+        this.maxDate = this.analysisDate;
+      }
+      if(this.minDate === null){
+        let this_date = new Date(this.analysisDate);
+        let days = 7 * (this.weekNum - 1);
+        let dateToAnalyze = new Date(this_date.getTime() - (days * 24 * 60 * 60 * 1000));
+        this.minDate = dateToAnalyze.toISOString().split('T')[0];
+      }
+      let dateMaxDate = new Date(this.maxDate);
+      let dateMinDate = new Date(this.minDate);
+      let dateAnalysisDate = new Date(this.analysisDate);
+      if(dateAnalysisDate > dateMaxDate){
+        this.totalNumOfWeek = this.totalNumOfWeek + this.weekNum;
+        this.maxDate = this.analysisDate;
+      }
+      if(dateAnalysisDate <= dateMinDate){
+        this.totalNumOfWeek = this.totalNumOfWeek + this.weekNum;
+        let this_date = new Date(this.analysisDate);
+        let days = 7 * (this.weekNum - 1);
+        let dateToAnalyze = new Date(this_date.getTime() - (days * 24 * 60 * 60 * 1000));
+        this.minDate = dateToAnalyze.toISOString().split('T')[0];
+      }
+    },
+    downloadTableAnalyzedPeriods(){
+      let result_sorted = this.unionOfAllData();
+      let headers = this.calculateHeaders();
+      let text = this.json2csv(result_sorted, headers);
+      let filename = 'mutsDiffusionTable.csv';
+      let element = document.createElement('a');
+      element.setAttribute('download', filename);
+      var data = new Blob([text]);
+      element.href = URL.createObjectURL(data);
+      document.body.appendChild(element);
+      element.click();
+      document.body.removeChild(element);
+    },
+    json2csv(input, selected_headers) {
+        var json = input;
+        var fields = [];
+        var fields2 = [];
+        selected_headers.forEach(function (el) {
+            fields.push(el.text.replaceAll("\n", ""));
+        });
+        selected_headers.forEach(function (el) {
+            fields2.push(el.value.replaceAll("\n", ""));
+        });
+        var csv = json.map(function (row) {
+            return fields2.map(function (fieldName) {
+                let string_val;
+                string_val = String(row[fieldName]);
+                string_val = string_val.replaceAll("\n", " ");
+                return JSON.stringify(string_val);
+            }).join(',')
+        });
+        csv.unshift(fields.join(','));
+        return csv.join('\r\n')
+    },
+    unionOfAllData(){
+        let jsonResults = {};
+
+        Object.keys(this.listOfPeriods).forEach(key => {
+          for (let i = 0; i < this.listOfPeriods[key].length; i++){
+            let analysis_date = key;
+            for(let j=0; j<this.weekNum; j=j+1) {
+              let mut = this.listOfPeriods[key][i]['mut'];
+              let protein = this.listOfPeriods[key][i]['protein'];
+              let location = this.listOfPeriods[key][i]['location'];
+              let key1 = 'count_with_mut_this_week_' + analysis_date;
+              let key2 = 'count_without_mut_this_week_' + analysis_date;
+              let percentage = this.listOfPeriods[key][i][key1] / (this.listOfPeriods[key][i][key1] + this.listOfPeriods[key][i][key2]);
+
+              let jsonKey = location + '_' + protein + '_' + mut
+
+              // eslint-disable-next-line no-prototype-builtins
+              if (jsonResults.hasOwnProperty(jsonKey)) {
+                jsonResults[jsonKey][analysis_date] = percentage;
+              } else {
+                jsonResults[jsonKey] = {'mut': mut, 'location': location, 'protein': protein};
+                jsonResults[jsonKey][analysis_date] = percentage;
+              }
+
+              let this_date = new Date(analysis_date);
+              let days = 7 ;
+              let previous_date = new Date(this_date.getTime() - (days * 24 * 60 * 60 * 1000));
+              analysis_date = previous_date.toISOString().split('T')[0];
+            }
+          }
+        });
+
+        let arrayResults = [];
+
+        Object.keys(jsonResults).forEach(key => {
+          arrayResults.push(jsonResults[key]);
+        });
+
+        return arrayResults;
+    },
+    calculateHeaders(){
+      let predefined_headers = [
+        {text: 'Location', value: 'location'},
+        {text: 'Protein', value: 'protein'},
+        {text: 'Mut', value: 'mut'},
+      ]
+
+      let additional_headers = [];
+      let analysis_date = this.maxDate;
+      for(let j=0; j<this.totalNumOfWeek; j=j+1){
+        let single_header = {text: analysis_date, value: analysis_date};
+        additional_headers.unshift(single_header);
+        let this_date = new Date(analysis_date);
+        let days = 7 ;
+        let previous_date = new Date(this_date.getTime() - (days * 24 * 60 * 60 * 1000));
+        analysis_date = previous_date.toISOString().split('T')[0]
+      }
+
+      predefined_headers = predefined_headers.concat(additional_headers);
+      return predefined_headers
     }
   },
   mounted() {

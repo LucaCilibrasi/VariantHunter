@@ -128,7 +128,8 @@
             <li><b>P value with mut: </b>  shows if the population «lineage + mutation» is growing differently compared to everything else. </li><br>
             <li><b>P value without mut: </b>  shows if the population «lineage without mutation» is growing differently compared to everything else. </li><br>
             <li><b>P value comparative: </b>  shows if the population «lineage + mutation» is growing differently compared to the population «lineage without mutation». </li><br>
-            <li><b>Significance: </b> shows how much important a mutation is. The indicator is calculated through a linear interpolation of the "P values comparative". The lower the value, the higher the significance.</li><br>
+            <li><b>Slope: </b> is calculated through a linear interpolation of the diffusion (percentage).  (y=<b>m</b>x + q)</li><br>
+            <li><b>Y-intercept: </b> is calculated through a linear interpolation of the diffusion (percentage).  (y=mx + <b>q</b>)</li><br>
           </v-card-text>
 
         </v-card>
@@ -304,7 +305,7 @@ export default {
           let desc = isDesc[i];
           if(idx !== null && idx !== undefined) {
             items.sort((a, b) => {
-              if (!idx.includes('p_value') && idx.includes('polyfit') && idx.includes('perc')) {
+              if (!idx.includes('p_value') && !idx.includes('polyfit') && !idx.includes('perc')) {
                 if (idx === 'mut') {
                   if (desc) {
                     let pos_a = a['muts'][0]['loc'];
@@ -560,7 +561,11 @@ export default {
           {text: 'Lineage', value: 'lineage', sortable: true, show: true, align: 'center', width: '13vh'},
           {text: 'Protein', value: 'protein', sortable: true, show: true, align: 'center', width: '13vh'},
           {text: 'Mut', value: 'mut', sortable: true, show: true, align: 'center', width: '13vh'},
-          {text: 'Significance', value: 'polyfit', sortable: true, show: true, align: 'center', width: '13vh'},
+          {text: 'Slope', value: 'polyfit_slope', sortable: true, show: true, align: 'center', width: '13vh'},
+          {text: 'Y-intercept', value: 'polyfit_intercept', sortable: true, show: true, align: 'center', width: '13vh'},
+          {text: 'P-value with mut', value: 'p_value_with_mut_total', sortable: true, show: true, align: 'center', width: '13vh'},
+          {text: 'P-value without mut', value: 'p_value_without_mut_total', sortable: true, show: true, align: 'center', width: '13vh'},
+          {text: 'P-value comparative', value: 'p_value_comparative_mut_total', sortable: true, show: true, align: 'center', width: '13vh'},
         ]
       }
       else{
@@ -569,7 +574,12 @@ export default {
           {text: 'Location', value: 'location', sortable: true, show: true, align: 'center', width: '13vh'},
           {text: 'Protein', value: 'protein', sortable: true, show: true, align: 'center', width: '13vh'},
           {text: 'Mut', value: 'mut', sortable: true, show: true, align: 'center', width: '13vh'},
-          {text: 'Significance', value: 'polyfit', sortable: true, show: true, align: 'center', width: '13vh'},
+          {text: 'Slope', value: 'polyfit_slope', sortable: true, show: true, align: 'center', width: '13vh'},
+          {text: 'Y-intercept', value: 'polyfit_intercept', sortable: true, show: true, align: 'center', width: '13vh'},
+          {text: 'P-value with mut', value: 'p_value_with_mut_total', sortable: true, show: true, align: 'center', width: '13vh'},
+          {text: 'P-value without mut', value: 'p_value_without_mut_total', sortable: true, show: true, align: 'center', width: '13vh'},
+          {text: 'P-value comparative', value: 'p_value_comparative_mut_total', sortable: true, show: true, align: 'center', width: '13vh'},
+
         ]
       }
 
@@ -690,7 +700,7 @@ export default {
       });
       if(this.switch_alert){
         let copyResults = JSON.parse(JSON.stringify(partially_filtered));
-        let copyResults2 = this.customSort(copyResults, ['polyfit'], [false]);
+        let copyResults2 = this.customSort(copyResults, ['polyfit_slope'], [true]);
         this.filteredResults = JSON.parse(JSON.stringify(copyResults2.slice(0, this.maxNumberOfImportantMuts)));
       }
       else{
@@ -745,16 +755,21 @@ export default {
 
 <style scoped>
 
-tbody td:nth-of-type(6),td:nth-of-type(7),td:nth-of-type(8),
-      td:nth-of-type(12),td:nth-of-type(13),td:nth-of-type(14){
-  background-color: rgba(0, 0, 0, .05);
-  border-left: solid 1px grey;
+.v-data-table > .v-data-table__wrapper > table > tbody > tr > td:nth-of-type(5),td:nth-of-type(6), td:nth-of-type(7),td:nth-of-type(8),td:nth-of-type(9){
+  background-color: rgba(0, 0, 0, .05) !important;
+  border-left: solid 1px grey !important;
 }
 
-tbody td:nth-of-type(9),td:nth-of-type(10),td:nth-of-type(11),
-      td:nth-of-type(15),td:nth-of-type(16),td:nth-of-type(17){
-  background-color: rgba(0, 0, 0, .15);
-  border-left: solid 1px grey;
+.v-data-table > .v-data-table__wrapper > table > tbody > tr >  td:nth-of-type(10),td:nth-of-type(11),td:nth-of-type(12),
+      td:nth-of-type(16),td:nth-of-type(17),td:nth-of-type(18){
+  background-color: rgba(0, 0, 0, .05) !important;
+  border-left: solid 1px grey !important;
+}
+
+.v-data-table > .v-data-table__wrapper > table > tbody > tr >  td:nth-of-type(13),td:nth-of-type(14),td:nth-of-type(15),
+      td:nth-of-type(19),td:nth-of-type(20),td:nth-of-type(21){
+  background-color: rgba(0, 0, 0, .15) !important;
+  border-left: solid 1px grey !important;
 }
 
 </style>

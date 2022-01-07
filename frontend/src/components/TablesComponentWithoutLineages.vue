@@ -147,7 +147,8 @@
             <li><b>P value with mut: </b>  shows if the population «lineage + mutation» is growing differently compared to everything. </li><br>
             <li><b>P value without mut: </b>  shows if the population «lineage without mutation» is growing differently compared to everything. </li><br>
             <li><b>P value comparative: </b>  shows if the population «lineage + mutation» is growing differently compared to the population «lineage without mutation». </li><br>
-            <li><b>Significance: </b> shows how much important a mutation is. The indicator is calculated through a linear interpolation of the diffusion (percentage). The higher the value, the higher the significance.</li><br>
+            <li><b>Slope: </b> is calculated through a linear interpolation of the diffusion (percentage).  (y=<b>m</b>x + q)</li><br>
+            <li><b>Y-intercept: </b> is calculated through a linear interpolation of the diffusion (percentage).  (y=mx + <b>q</b>)</li><br>
           </v-card-text>
 
         </v-card>
@@ -328,7 +329,7 @@ export default {
           let desc = isDesc[i];
           if(idx !== null && idx !== undefined) {
             items.sort((a, b) => {
-              if (!idx.includes('p_value') && idx.includes('polyfit') && idx.includes('perc')) {
+              if (!idx.includes('p_value') && !idx.includes('polyfit')) {
                 if (idx === 'mut') {
                   if (desc) {
                     let pos_a = a['muts'][0]['loc'];
@@ -344,6 +345,57 @@ export default {
                     let pos_b = b['muts'][0]['loc'];
                     if (pos_a !== pos_b || i >= len) {
                       return pos_b > pos_a ? -1 : 1;
+                    }
+                    else{
+                      return this.singleCustomSort(a, b, i+1, len, index, isDesc);
+                    }
+                  }
+                }
+                else if(idx.includes('perc')){
+                  let date = idx.replace('perc_with_absolute_number','');
+                  let realKey = 'perc_with_mut_this_week' + date;
+                  if (desc) {
+                    if(a[idx] === null || a[idx] === undefined){
+                      if (b[idx] !== a[idx] || i >= len) {
+                        return 1;
+                      }
+                      else{
+                        return this.singleCustomSort(a, b, i+1, len, index, isDesc);
+                      }
+                    }
+                    if(b[idx] === null || b[idx] === undefined){
+                      if (b[idx] !== a[idx] || i >= len) {
+                        return -1;
+                      }
+                      else{
+                        return this.singleCustomSort(a, b, i+1, len, index, isDesc);
+                      }
+                    }
+                    if (b[realKey] !== a[realKey] || i >= len) {
+                      return Number(b[realKey]) < Number(a[realKey]) ? -1 : 1;
+                    }
+                    else{
+                      return this.singleCustomSort(a, b, i+1, len, index, isDesc);
+                    }
+                  } else {
+                    if(a[idx] === null || a[idx] === undefined){
+                      if (b[idx] !== a[idx] || i >= len) {
+                        return 1;
+                      }
+                      else{
+                        return this.singleCustomSort(a, b, i+1, len, index, isDesc);
+                      }
+                    }
+                    if(b[idx] === null || b[idx] === undefined){
+                      if (b[idx] !== a[idx] || i >= len) {
+                        return -1;
+                      }
+                      else{
+                        return this.singleCustomSort(a, b, i+1, len, index, isDesc);
+                      }
+                    }
+                    if (b[realKey] !== a[realKey] || i >= len) {
+                      return Number(b[realKey]) > Number(a[realKey]) ? -1 : 1;
                     }
                     else{
                       return this.singleCustomSort(a, b, i+1, len, index, isDesc);
@@ -425,7 +477,7 @@ export default {
     singleCustomSort(a, b, i, len, index, isDesc) {
       let idx = index[i];
       let desc = isDesc[i];
-      if (!idx.includes('p_value') && idx.includes('polyfit') && idx.includes('perc')) {
+      if (!idx.includes('p_value') && idx.includes('polyfit')) {
         if (idx === 'mut') {
           if (desc) {
             let pos_a = a['muts'][0]['loc'];
@@ -441,6 +493,57 @@ export default {
             let pos_b = b['muts'][0]['loc'];
             if (pos_a !== pos_b || i >= len) {
               return pos_b > pos_a ? -1 : 1;
+            }
+            else{
+              return this.singleCustomSort(a, b, i+1, len, index, isDesc);
+            }
+          }
+        }
+        else if(idx.includes('perc')){
+          let date = idx.replace('perc_with_absolute_number','');
+          let realKey = 'perc_with_mut_this_week' + date;
+          if (desc) {
+            if(a[idx] === null || a[idx] === undefined){
+              if (b[idx] !== a[idx] || i >= len) {
+                return 1;
+              }
+              else{
+                return this.singleCustomSort(a, b, i+1, len, index, isDesc);
+              }
+            }
+            if(b[idx] === null || b[idx] === undefined){
+              if (b[idx] !== a[idx] || i >= len) {
+                return -1;
+              }
+              else{
+                return this.singleCustomSort(a, b, i+1, len, index, isDesc);
+              }
+            }
+            if (b[realKey] !== a[realKey] || i >= len) {
+              return Number(b[realKey]) < Number(a[realKey]) ? -1 : 1;
+            }
+            else{
+              return this.singleCustomSort(a, b, i+1, len, index, isDesc);
+            }
+          } else {
+            if(a[idx] === null || a[idx] === undefined){
+              if (b[idx] !== a[idx] || i >= len) {
+                return 1;
+              }
+              else{
+                return this.singleCustomSort(a, b, i+1, len, index, isDesc);
+              }
+            }
+            if(b[idx] === null || b[idx] === undefined){
+              if (b[idx] !== a[idx] || i >= len) {
+                return -1;
+              }
+              else{
+                return this.singleCustomSort(a, b, i+1, len, index, isDesc);
+              }
+            }
+            if (b[realKey] !== a[realKey] || i >= len) {
+              return Number(b[realKey]) > Number(a[realKey]) ? -1 : 1;
             }
             else{
               return this.singleCustomSort(a, b, i+1, len, index, isDesc);
@@ -584,7 +687,8 @@ export default {
           {text: 'Lineage', value: 'lineage', sortable: true, show: true, align: 'center', width: '13vh'},
           {text: 'Protein', value: 'protein', sortable: true, show: true, align: 'center', width: '13vh'},
           {text: 'Mut', value: 'mut', sortable: true, show: true, align: 'center', width: '13vh'},
-          {text: 'Significance', value: 'polyfit', sortable: true, show: true, align: 'center', width: '13vh'},
+          {text: 'Slope', value: 'polyfit_slope', sortable: true, show: true, align: 'center', width: '13vh'},
+          {text: 'Y-intercept', value: 'polyfit_intercept', sortable: true, show: true, align: 'center', width: '13vh'},
         ]
       }
       else{
@@ -593,7 +697,8 @@ export default {
           {text: 'Location', value: 'location', sortable: true, show: true, align: 'center', width: '13vh'},
           {text: 'Protein', value: 'protein', sortable: true, show: true, align: 'center', width: '13vh'},
           {text: 'Mut', value: 'mut', sortable: true, show: true, align: 'center', width: '13vh'},
-          {text: 'Significance', value: 'polyfit', sortable: true, show: true, align: 'center', width: '13vh'},
+          {text: 'Slope', value: 'polyfit_slope', sortable: true, show: true, align: 'center', width: '13vh'},
+          {text: 'Y-intercept', value: 'polyfit_intercept', sortable: true, show: true, align: 'center', width: '13vh'},
         ]
       }
 
@@ -626,7 +731,8 @@ export default {
       }
 
       if(!this.withLineages){
-        array_possible_header.unshift('perc_with_mut_this_week');
+        // array_possible_header.unshift('perc_with_mut_this_week');
+        array_possible_header.unshift('perc_with_absolute_number');
       }
 
       let analysis_date = this.singleInfo['date'];
@@ -636,7 +742,8 @@ export default {
         // let text = i.toString();
         text = text.replaceAll('_', ' ');
         text = text.charAt(0).toUpperCase() + text.slice(1);
-        if(array_possible_header[i] === 'perc_with_mut_this_week'){
+        //if(array_possible_header[i] === 'perc_with_mut_this_week'){
+        if(array_possible_header[i] === 'perc_with_absolute_number'){
           text = 'Presence (%) ' + analysis_date + '\n';
         }
         let single_header = {text: text, value: value, sortable: true, show: true, align: 'center', width: '10vh'};
@@ -662,7 +769,8 @@ export default {
           // let text = i.toString();
           text = text.replaceAll('_', ' ');
           text = text.charAt(0).toUpperCase() + text.slice(1);
-          if(array_possible_header[i] === 'perc_with_mut_this_week'){
+          //if(array_possible_header[i] === 'perc_with_mut_this_week'){
+          if(array_possible_header[i] === 'perc_with_absolute_number'){
             text = 'Presence (%) ' + analysis_date + '\n';
           }
           let single_header = {text: text, value: value, sortable: true, show: true, align: 'center', width: '10vh'};
@@ -671,6 +779,15 @@ export default {
       }
 
       predefined_headers = predefined_headers.concat(additional_headers);
+
+      if(this.switch_show_p_values){
+        let total_p_value_headers = [
+          {text: 'P-value with mut', value: 'p_value_with_mut_total', sortable: true, show: true, align: 'center', width: '13vh'},
+          {text: 'P-value without mut', value: 'p_value_without_mut_total', sortable: true, show: true, align: 'center', width: '13vh'},
+          {text: 'P-value comparative', value: 'p_value_comparative_mut_total', sortable: true, show: true, align: 'center', width: '13vh'},
+        ]
+        predefined_headers = predefined_headers.concat(total_p_value_headers);
+      }
 
       this.headerTable = predefined_headers;
       this.headerTableSubPlaces = predefined_headers;
@@ -707,7 +824,7 @@ export default {
                 key.includes('p_value_comparative_mut') ||
                 key.includes('p_value_with_mut') ||
                 key.includes('p_value_without_mut') ||
-                key.includes('polyfit')) &&
+                key.includes('polyfit_slope')) &&
                 elem[key] !== null
                 && elem[key] !== undefined){
               elem[key] = Number.parseFloat(elem[key]).toPrecision(2);
@@ -737,7 +854,7 @@ export default {
       if(this.switch_alert){
         let copyResults = JSON.parse(JSON.stringify(partially_filtered));
         //// FILTRO I PIU ALTI
-        let copyResults2 = this.customSort(copyResults, ['polyfit'], [true]);
+        let copyResults2 = this.customSort(copyResults, ['polyfit_slope'], [true]);
         this.filteredResults = JSON.parse(JSON.stringify(copyResults2.slice(0, this.maxNumberOfImportantMuts)));
       }
       else{
@@ -818,14 +935,19 @@ export default {
 
 <style>
 
-.v-data-table > .v-data-table__wrapper > table > tbody > tr >  td:nth-of-type(6),td:nth-of-type(7),td:nth-of-type(8), td:nth-of-type(9),
-      td:nth-of-type(14),td:nth-of-type(15),td:nth-of-type(16), td:nth-of-type(17){
+.v-data-table > .v-data-table__wrapper > table > tbody > tr >  td:nth-of-type(5),td:nth-of-type(6){
   background-color: rgba(0, 0, 0, .05);
   border-left: solid 1px grey;
 }
 
-.v-data-table > .v-data-table__wrapper > table > tbody > tr >  td:nth-of-type(10),td:nth-of-type(11),td:nth-of-type(12), td:nth-of-type(13),
-      td:nth-of-type(18),td:nth-of-type(19),td:nth-of-type(20), td:nth-of-type(21){
+.v-data-table > .v-data-table__wrapper > table > tbody > tr >  td:nth-of-type(7),td:nth-of-type(8),td:nth-of-type(9), td:nth-of-type(10),
+      td:nth-of-type(15),td:nth-of-type(16),td:nth-of-type(17), td:nth-of-type(18){
+  background-color: rgba(0, 0, 0, .05);
+  border-left: solid 1px grey;
+}
+
+.v-data-table > .v-data-table__wrapper > table > tbody > tr >  td:nth-of-type(11),td:nth-of-type(12),td:nth-of-type(13), td:nth-of-type(14),
+      td:nth-of-type(19),td:nth-of-type(20),td:nth-of-type(21), td:nth-of-type(22){
   background-color: rgba(0, 0, 0, .15);
   border-left: solid 1px grey;
 }

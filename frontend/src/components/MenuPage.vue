@@ -11,19 +11,19 @@
 
 
         <v-tab id="tab0" style="border-right: black solid 1px; width: 30%; border-bottom: solid black 1px">
-           VARIANCE IN LOCATION AND LINEAGE
+           LINEAGE INDEPENDENT
         </v-tab>
 
         <v-tab id="tab1" style="border-right: black solid 1px; width: 30%; border-bottom: solid black 1px">
-           MUTATIONS’ PRESENCE IN LOCATION
+           LINEAGE SPECIFIC
         </v-tab>
 
         <v-tab-item class="lol">
-          <MainPageWithLineages></MainPageWithLineages>
+          <MainPageWithoutLineages></MainPageWithoutLineages>
         </v-tab-item>
 
         <v-tab-item class="lol">
-          <MainPageWithoutLineages></MainPageWithoutLineages>
+          <MainPageWithLineages></MainPageWithLineages>
         </v-tab-item>
 
       </v-tabs>
