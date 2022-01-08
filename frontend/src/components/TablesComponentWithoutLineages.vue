@@ -933,23 +933,10 @@ export default {
 }
 </script>
 
-<style>
+<style scoped>
 
-/*.v-data-table > .v-data-table__wrapper > table > tbody > tr >  td:nth-of-type(5),td:nth-of-type(6){*/
-/*  background-color: rgba(0, 0, 0, .05);*/
-/*  border-left: solid 1px grey;*/
-/*}*/
-
-/*.v-data-table > .v-data-table__wrapper > table > tbody > tr >  td:nth-of-type(7),td:nth-of-type(8),td:nth-of-type(9), td:nth-of-type(10),*/
-/*      td:nth-of-type(15),td:nth-of-type(16),td:nth-of-type(17), td:nth-of-type(18){*/
-/*  background-color: rgba(0, 0, 0, .05);*/
-/*  border-left: solid 1px grey;*/
-/*}*/
-
-/*.v-data-table > .v-data-table__wrapper > table > tbody > tr >  td:nth-of-type(11),td:nth-of-type(12),td:nth-of-type(13), td:nth-of-type(14),*/
-/*      td:nth-of-type(19),td:nth-of-type(20),td:nth-of-type(21), td:nth-of-type(22){*/
-/*  background-color: rgba(0, 0, 0, .15);*/
-/*  border-left: solid 1px grey;*/
-/*}*/
+.provaprova {
+  color:red
+}
 
 </style>
