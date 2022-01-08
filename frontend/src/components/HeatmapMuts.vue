@@ -81,7 +81,7 @@ export default {
           label: {
             show: true,
             formatter: function (params) {
-            return `${Number.parseFloat(params.data[2]).toPrecision(2)}`;
+            return `${Number.parseFloat(params.data[2]).toPrecision(3)}`;
           },
           },
         }]
