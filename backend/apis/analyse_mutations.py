@@ -15,7 +15,7 @@ api = Namespace('analyse_mutations', description='analyse_mutations')
 uri = "mongodb://localhost:27017/gcm_gisaid"
 client = MongoClient(uri)
 db = client.gcm_gisaid
-collection_db = db.viruclust_db_0
+collection_db = db.database_2022_01_07
 
 # client = MongoClient(host='test_mongodb',
 #                      port=27017,
