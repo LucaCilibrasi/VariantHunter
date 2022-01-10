@@ -155,8 +155,12 @@
                             :singleInfo = expansionPanelsSingleInfo[index]
                             :nameHeatmap="'heatmapWithoutLineage' + index"
                             :timeName="'timeDistributionWithoutLineage'+index"
-                            :withLineages="false">
+                            :withLineages="false"
+                            v-if="rowsTable[index].length > 0">
                           </TablesComponentWithoutLineages>
+                          <div v-else style="text-align: center; margin-top: 20px">
+                            <h2 style="color: white"> Not enough data for this location </h2>
+                          </div>
                         </v-expansion-panel-content>
                       </v-expansion-panel>
                    </v-expansion-panels>

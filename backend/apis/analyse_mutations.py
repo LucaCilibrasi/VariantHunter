@@ -678,8 +678,8 @@ def create_unique_array_results(array_results, today_date, array_date):
             if key in json_obj:
                 count = count + 1
                 array_y_polyfit.append(json_obj[key])
-            else:
-                array_y_polyfit.append(1.0)
+            # else:
+            #     array_y_polyfit.append(1.0)
 
             if i == 1:
                 key_count_with_mut_prev_week = 'count_with_mut_prev_week' + '_' + single_date
@@ -810,13 +810,23 @@ def create_unique_array_results(array_results, today_date, array_date):
             json_obj['p_value_without_mut_total'] = p_without_mut
             json_obj['p_value_comparative_mut_total'] = p_comparative_mut
 
-        print("qui", array_x_polyfit, array_y_polyfit)
-        z = np.polyfit(array_x_polyfit, array_y_polyfit, 1)
-        json_obj['polyfit_slope'] = z[0]
+        array_x_polyfit = []
+        j = 0
+        while j < len(array_y_polyfit):
+            array_x_polyfit.append(float(j))
+            j = j + 1
 
-        to_float = z[1]
-        format_float = "{:.2f}".format(to_float)
-        json_obj['polyfit_intercept'] = format_float
+        print("qui", array_x_polyfit, array_y_polyfit)
+        if len(array_x_polyfit) > 1:
+            z = np.polyfit(array_x_polyfit, array_y_polyfit, 1)
+            json_obj['polyfit_slope'] = z[0]
+
+            to_float = z[1]
+            format_float = "{:.2f}".format(to_float)
+            json_obj['polyfit_intercept'] = format_float
+        else:
+            json_obj['polyfit_slope'] = 0
+            json_obj['polyfit_intercept'] = 0
 
         min_count = (len(array_date) / 2) + 1
         if count < min_count:

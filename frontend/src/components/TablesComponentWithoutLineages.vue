@@ -889,9 +889,14 @@ export default {
   watch: {
     selectedRows (val, oldVal) {
       if (val.length > this.maxNumberSelectedMuts) {
-        this.$nextTick(() => {
-          this.selectedRows = oldVal
-        })
+        if(val.length - this.maxNumberSelectedMuts > 2){
+          this.selectedRows = [];
+        }
+        else {
+          this.$nextTick(() => {
+            this.selectedRows = oldVal
+          })
+        }
       }
     },
     switch_alert(){

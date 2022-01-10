@@ -1,19 +1,20 @@
 services:
-  app:
+  appVariantHunter:
     build: .
-    command: python -u ./backend/app.py ${FILE_NAME} ${LOCATION} ${DATE}
+    image: lucacilibrasi/varianthunter
+    command: python -u ./backend/app.py ${FILE_NAME} '${LOCATION}' ${DATE}
     ports:
       - "5000:5000"
     volumes:
       - ${FILE_PATH}:/backend/app/database
     links:
-      - db
+      - dbVariantHunter
     environment:
       - FILE_PATH=${FILE_PATH}
       - FILE_NAME=${FILE_NAME}
       - LOCATION=${LOCATION}
       - DATE=${DATE}
-  db:
+  dbVariantHunter:
     image: mongo:latest
     hostname: test_mongodb
     environment:
