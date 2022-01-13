@@ -266,6 +266,8 @@ export default {
     unionOfAllData(){
         let jsonResults = {};
 
+        let totalRes = {'mut': 'Total', 'location': 'Total', 'protein': 'Total'};
+
         Object.keys(this.listOfPeriods).forEach(key => {
           for (let i = 0; i < this.listOfPeriods[key].length; i++){
             let analysis_date = key;
@@ -276,6 +278,16 @@ export default {
               let key1 = 'count_with_mut_this_week_' + analysis_date;
               let key2 = 'count_without_mut_this_week_' + analysis_date;
               let percentage = this.listOfPeriods[key][i][key1] / (this.listOfPeriods[key][i][key1] + this.listOfPeriods[key][i][key2]);
+
+              // eslint-disable-next-line no-prototype-builtins
+              if (totalRes.hasOwnProperty(analysis_date)) {
+                if(totalRes[analysis_date] < (this.listOfPeriods[key][i][key1] + this.listOfPeriods[key][i][key2])){
+                  totalRes[analysis_date] = (this.listOfPeriods[key][i][key1] + this.listOfPeriods[key][i][key2]);
+                }
+              }
+              else{
+                totalRes[analysis_date] = (this.listOfPeriods[key][i][key1] + this.listOfPeriods[key][i][key2]);
+              }
 
               let jsonKey = location + '_' + protein + '_' + mut
 
@@ -300,6 +312,8 @@ export default {
         Object.keys(jsonResults).forEach(key => {
           arrayResults.push(jsonResults[key]);
         });
+
+        arrayResults.push(totalRes);
 
         return arrayResults;
     },
